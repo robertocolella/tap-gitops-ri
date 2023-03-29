@@ -75,4 +75,4 @@ tap_install:
     policy:
       tuf_enabled: false
     tap_telemetry:
-      customer_entitlement_account_number: "123"
+      installed_for_vmware_internal_use: "true"
