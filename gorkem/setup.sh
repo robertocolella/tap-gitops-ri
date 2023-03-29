@@ -54,7 +54,7 @@ sops --encrypt tap-sensitive-values.yaml > tap-sensitive-values.sops.yaml
 mv tap-sensitive-values.sops.yaml ../../clusters/full-profile/cluster-config/values
 cd ../../
 
-ytt --ignore-unknown-comments -f values.yaml -f ./gorkem/tap-non-sensitive-values.yaml > clusters/full-profile/cluster-config/values/tap-values.yaml
+ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/tap-non-sensitive-values.yaml > ./clusters/full-profile/cluster-config/values/tap-values.yaml
 
 export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
 export INSTALL_REGISTRY_USERNAME=$(yq '.tanzuNet_username' values.yaml)
@@ -68,5 +68,8 @@ export AGE_KEY=$(cat ./tmp-enc/key.txt)
 git add cluster-config/ tanzu-sync/
 git commit -m "Configure install of TAP 1.5.0"
 git push
+
+kubectl create ns my-apps
+kubectl label ns my-apps apps.tanzu.vmware.com/tap-ns=""
 
 ./tanzu-sync/scripts/deploy.sh
