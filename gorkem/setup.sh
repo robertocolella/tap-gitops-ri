@@ -61,7 +61,7 @@ export INSTALL_REGISTRY_USERNAME=$(yq '.tanzuNet_username' values.yaml)
 export INSTALL_REGISTRY_PASSWORD=$(yq '.tanzuNet_password' values.yaml)
 export GIT_SSH_PRIVATE_KEY=$(cat $HOME/.ssh/id_rsa)
 export GIT_KNOWN_HOSTS=$(ssh-keyscan github.com)
-export SOPS_AGE_KEY=$(cat ./gorkem/tmp-enc/key.txt)
+export AGE_KEY=$(cat ./tmp-enc/key.txt)
 
 ./tanzu-sync/scripts/configure.sh
 
