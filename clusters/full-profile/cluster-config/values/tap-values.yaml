@@ -32,7 +32,6 @@ tap_install:
     buildservice:
       kp_default_repository: harbor.mgt.mytanzu.org/tap-15/build
       kp_default_repository_username: admin
-      exclude_dependencies: true
     tap_gui:
       service_type: ClusterIP
       metadataStoreAutoconfiguration: true
