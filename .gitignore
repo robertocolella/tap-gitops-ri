@@ -1,5 +1,6 @@
 gorkem/tmp-enc/key.txt
 gorkem/tmp-enc/tap-sensitive-values.yaml
 gorkem/tanzu-cluster-essentials/
-gorkem/tanzu-cluster-essentials/tanzu-cluster-essentials-darwin-amd64-1.4.1.tgz
+gorkem/tanzu-cluster-essentials-darwin-amd64-1.4.1.tgz
 tanzu-gitops-ri-0.0.2.tgz
+gorkem/values.yaml

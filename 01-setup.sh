@@ -37,7 +37,9 @@ export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
 export INSTALL_REGISTRY_USERNAME=$(yq '.tanzuNet_username' gorkem/values.yaml)
 export INSTALL_REGISTRY_PASSWORD=$(yq '.tanzuNet_password' gorkem/values.yaml)
 
-./gorkem/tanzu-cluster-essentials/install.sh --yes
+cd gorkem/tanzu-cluster-essentials
+./install.sh --yes
+cd ../..
 
 # setup sops key
 
@@ -46,10 +48,10 @@ chmod 700 ./gorkem/tmp-enc
 age-keygen -o ./gorkem/tmp-enc/key.txt
 
 export SOPS_AGE_RECIPIENTS=$(cat ./gorkem/tmp-enc/key.txt | grep "# public key: " | sed 's/# public key: //')
-
 export HARBOR_USERNAME=$(yq '.image_registry_user' ./gorkem/values.yaml)
 export HARBOR_PASSWORD=$(yq '.image_registry_password' ./gorkem/values.yaml)
 export HARBOR_URL=$(yq '.image_registry' ./gorkem/values.yaml)
+
 cat > ./gorkem/tmp-enc/tap-sensitive-values.yaml <<-EOF
 ---
 tap_install:
@@ -74,6 +76,11 @@ export INSTALL_REGISTRY_PASSWORD=$(yq '.tanzuNet_password' ./gorkem/values.yaml)
 export GIT_SSH_PRIVATE_KEY=$(cat $HOME/.ssh/id_rsa)
 export GIT_KNOWN_HOSTS=$(ssh-keyscan github.com)
 export AGE_KEY=$(cat ./gorkem/tmp-enc/key.txt)
+
+
+git init && git add . && git commit -m "Big Bang" && git branch -M main
+git remote add origin https://github.com/gorkemozlu/tap-gitops-2.git
+git push -u origin main
 
 ./clusters/full-profile/tanzu-sync/scripts/configure.sh
 
