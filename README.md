@@ -2,15 +2,15 @@
 
 ## Getting Started Quick
 
-For example, to initialize configuration for a cluster named "build-01" to use SOPS for secrets management:
-```
-$ ./setup-repo.sh build-01 sops
-```
-
-## Overview
+Create the ```values.yaml``` from the ```values-template.yaml``` file.
 
 ```
-./.catalog/      # products that can be configure into one or more clusters
-./clusters/      # configuration for each cluster
-./setup-repo.sh  # helper script for setting up contents of ./clusters
+$ cp ./gorkem/templates/values-template.yaml ./gorkem/templates/values.yaml
+```
+
+Then, update the ```./gorkem/templates/values.yaml``` file for TAP values.
+
+Then run the ```01-setup.sh``` for installation
+```
+$ ./01-setup.sh
 ```

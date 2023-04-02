@@ -68,7 +68,7 @@ sops --encrypt ./gorkem/tmp-enc/tap-sensitive-values.yaml > ./gorkem/tmp-enc/tap
 mv ./gorkem/tmp-enc/tap-sensitive-values.sops.yaml ./clusters/full-profile/cluster-config/values
 
 
-ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/tap-non-sensitive-values.yaml > ./clusters/full-profile/cluster-config/values/tap-values.yaml
+ytt --ignore-unknown-comments -f ./gorkem/templates/values.yaml -f ./gorkem/templates/tap-non-sensitive-values-template.yaml > ./clusters/full-profile/cluster-config/values/tap-values.yaml
 
 export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
 export INSTALL_REGISTRY_USERNAME=$(yq '.tanzuNet_username' ./gorkem/values.yaml)
