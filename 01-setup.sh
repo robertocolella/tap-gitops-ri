@@ -14,8 +14,8 @@ rm -rf clusters
 rm -rf setup-repo.sh
 
 # GitOps Ref. Implementation
-pivnet download-product-files --product-slug='tanzu-application-platform' --release-version='1.5.0-rc.11' --product-file-id=1431307
-tar -xvf tanzu-gitops-ri-0.0.2.tgz
+pivnet download-product-files --product-slug='tanzu-application-platform' --release-version='1.5.0-rc.14' --product-file-id=1459284
+tar -xvf tanzu-gitops-ri-0.0.3.tgz
 ./setup-repo.sh full-profile sops
 
 # Download Cluster-Essentials
@@ -75,7 +75,7 @@ export INSTALL_REGISTRY_USERNAME=$(yq '.tanzuNet_username' ./gorkem/values.yaml)
 export INSTALL_REGISTRY_PASSWORD=$(yq '.tanzuNet_password' ./gorkem/values.yaml)
 export GIT_SSH_PRIVATE_KEY=$(cat $HOME/.ssh/id_rsa)
 export GIT_KNOWN_HOSTS=$(ssh-keyscan github.com)
-export AGE_KEY=$(cat ./gorkem/tmp-enc/key.txt)
+export SOPS_AGE_KEY=$(cat ./gorkem/tmp-enc/key.txt)
 
 
 git init && git add . && git commit -m "Big Bang" && git branch -M main
