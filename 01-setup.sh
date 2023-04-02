@@ -26,16 +26,16 @@ uname -s| grep Linux && pivnet download-product-files --product-slug='tanzu-clus
 mkdir gorkem/tanzu-cluster-essentials
 tar -xvf gorkem/tanzu-cluster-essentials-darwin-amd64-1.4.1.tgz -C gorkem/tanzu-cluster-essentials
 
+export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:2354688e46d4bb4060f74fca069513c9b42ffa17a0a6d5b0dbb81ed52242ea44
+export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
+export INSTALL_REGISTRY_USERNAME=$(yq '.tanzuNet_username' gorkem/values.yaml)
+export INSTALL_REGISTRY_PASSWORD=$(yq '.tanzuNet_password' gorkem/values.yaml)
+
 kubectl create namespace kapp-controller
 
 # kubectl create secret generic kapp-controller-config \
 #    --namespace kapp-controller \
 #    --from-file caCerts=ca.crt
-
-export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:2354688e46d4bb4060f74fca069513c9b42ffa17a0a6d5b0dbb81ed52242ea44
-export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
-export INSTALL_REGISTRY_USERNAME=$(yq '.tanzuNet_username' gorkem/values.yaml)
-export INSTALL_REGISTRY_PASSWORD=$(yq '.tanzuNet_password' gorkem/values.yaml)
 
 cd gorkem/tanzu-cluster-essentials
 ./install.sh --yes
@@ -82,9 +82,10 @@ git init && git add . && git commit -m "Big Bang" && git branch -M main
 git remote add origin https://github.com/gorkemozlu/tap-gitops-2.git
 git push -u origin main
 
-./clusters/full-profile/tanzu-sync/scripts/configure.sh
+cd ./clusters/full-profile
+./tanzu-sync/scripts/configure.sh
 
-git add ./clusters/full-profile/cluster-config/ ./clusters/full-profile/tanzu-sync/
+git add ./cluster-config/ ./tanzu-sync/
 git commit -m "Configure install of TAP 1.5.0"
 git push
 
@@ -92,4 +93,4 @@ kubectl create ns my-apps
 kubectl label ns my-apps apps.tanzu.vmware.com/tap-ns=""
 tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --password $HARBOR_PASSWORD --server $HARBOR_URL --namespace my-apps --export-to-all-namespaces
 
-./clusters/full-profile/tanzu-sync/scripts/deploy.sh
+./tanzu-sync/scripts/deploy.sh
