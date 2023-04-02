@@ -38,6 +38,7 @@ export SOPS_AGE_RECIPIENTS=$(cat key.txt | grep "# public key: " | sed 's/# publ
 
 export HARBOR_USERNAME=$(yq '.image_registry_user' values.yaml)
 export HARBOR_PASSWORD=$(yq '.image_registry_password' values.yaml)
+export HARBOR_URL=$(yq '.image_registry' values.yaml)
 cat > tap-sensitive-values.yaml <<-EOF
 ---
 tap_install:
@@ -71,5 +72,6 @@ git push
 
 kubectl create ns my-apps
 kubectl label ns my-apps apps.tanzu.vmware.com/tap-ns=""
+tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --password $HARBOR_PASSWORD --server $HARBOR_URL --namespace my-apps --export-to-all-namespaces
 
 ./tanzu-sync/scripts/deploy.sh
