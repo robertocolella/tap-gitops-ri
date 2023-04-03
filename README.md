@@ -1,4 +1,4 @@
-# Tanzu GitOps Reference Implementation
+# Tanzu GitOps Reference Implementation (WIP)
 
 ## Getting Started Quick
 
