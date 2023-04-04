@@ -1,12 +1,25 @@
 #!/bin/bash
 
 # age
-brew install age
-# wget https://github.com/FiloSottile/age/releases/download/v1.1.1/age-v1.1.1-linux-amd64.tar.gz
+if ! command -v age >/dev/null 2>&1 ; then
+  echo "age not installed. Use below to install"
+  echo "brew install age"
+  echo "or"
+  echo "wget https://github.com/FiloSottile/age/releases/download/v1.1.1/age-v1.1.1-linux-amd64.tar.gz"
+  echo "Exiting...."
+  exit 1
+fi
+
 
 # sops
-brew install sops
-# wget https://github.com/mozilla/sops/releases/download/v3.7.3/sops-v3.7.3.linux.amd64
+if ! command -v sops >/dev/null 2>&1 ; then
+  echo "sops not installed. Use below to install"
+  echo "brew install sops"
+  echo "or"
+  echo "wget https://github.com/mozilla/sops/releases/download/v3.7.3/sops-v3.7.3.linux.amd64"
+  echo "Exiting...."
+  exit 1
+fi
 
 rm -rf .git
 rm -rf .catalog
