@@ -38,6 +38,7 @@ uname -s| grep Linux && pivnet download-product-files --product-slug='tanzu-clus
 
 mkdir gorkem/tanzu-cluster-essentials
 tar -xvf gorkem/tanzu-cluster-essentials-darwin-amd64-1.4.1.tgz -C gorkem/tanzu-cluster-essentials
+cp ./gorkem/templates/values-template.yaml ./gorkem/templates/values.yaml
 
 export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:2354688e46d4bb4060f74fca069513c9b42ffa17a0a6d5b0dbb81ed52242ea44
 export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
