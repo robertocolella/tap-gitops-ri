@@ -108,3 +108,9 @@ kubectl label ns my-apps apps.tanzu.vmware.com/tap-ns=""
 tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --password $HARBOR_PASSWORD --server $HARBOR_URL --namespace my-apps --export-to-all-namespaces
 
 ./tanzu-sync/scripts/deploy.sh
+
+# additional tools
+# kubectl apply -f- gorkem/tools/local-issuer.yaml
+# ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f gorkem/tools/gitea.yaml|kubectl apply -f-
+# ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f gorkem/tools/nexus.yaml|kubectl apply -f-
+# ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f gorkem/tools/minio.yaml|kubectl apply -f-

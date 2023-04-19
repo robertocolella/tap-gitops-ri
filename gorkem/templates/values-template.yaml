@@ -11,6 +11,7 @@ tanzuNet_username: 'username@corp.com'
 tanzuNet_password: 'password'
 profile: full
 supply_chain: basic
+airgapped: true
 ca_cert_data-disabled: |
   -----BEGIN CERTIFICATE-----
   MIIFXzCCA0egAwIBAgIJAJYm37SFocjlMA0GCSqGSIb3DQEBDQUAMEY...
