@@ -5,3 +5,5 @@ gorkem/tanzu-cluster-essentials-*.tgz
 tanzu-gitops-ri-*.tgz
 gorkem/values.yaml
 gorkem/ca.crt
+*.tgz
+*.tar

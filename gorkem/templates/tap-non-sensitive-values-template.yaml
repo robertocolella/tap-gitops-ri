@@ -45,6 +45,7 @@ tap_install:
     buildservice:
       kp_default_repository: #@ "{}/{}".format(data.values.image_registry, data.values.image_registry_build)
       kp_default_repository_username: #@ data.values.image_registry_user
+      exclude_dependencies: false
     
     tap_gui:
       service_type: ClusterIP
