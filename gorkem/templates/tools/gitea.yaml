@@ -19,6 +19,20 @@ spec:
     name: local-issuer
   secretName: git-tls
 ---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: gitea-ssh-tls
+  namespace: gitea-repo
+spec:
+  commonName: #@ "git.{}".format(data.values.ingress_domain)
+  dnsNames:
+  - #@ "git-ssh.{}".format(data.values.ingress_domain)
+  issuerRef:
+    kind: ClusterIssuer
+    name: local-issuer
+  secretName: git-ssh-tls
+---
 # /data/gitea/conf/app.ini
 apiVersion: apps/v1
 kind: Deployment
@@ -97,3 +111,22 @@ spec:
     fqdn: #@ "git.{}".format(data.values.ingress_domain)
     tls:
       secretName: git-tls
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: gitea-ssh-httpproxy
+  namespace: gitea-repo
+spec:
+#  ingressClassName: tmc-local
+  routes:
+  - conditions:
+    - prefix: /
+    enableWebsockets: true
+    services:
+    - name: gitea-service
+      port: 22
+  virtualhost:
+    fqdn: #@ "git-ssh.{}".format(data.values.ingress_domain)
+    tls:
+      secretName: git-ssh-tls
