@@ -91,8 +91,6 @@ if [ "$AIRGAPPED" = "true" ]; then
       --concurrency 30 \
       --registry-ca-cert-path $REGISTRY_CA_PATH
 
-    yq eval -i ".tap_install.values.buildservice.exclude_dependencies = true" ./gorkem/templates/tap-non-sensitive-values-template.yaml
-
     export TAP_PKGR_REPO=$IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/tap
 
     imgpkg copy -b registry.tanzu.vmware.com/tanzu-application-platform/full-tbs-deps-package-repo:$TBS_VERSION \
@@ -225,8 +223,39 @@ tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --pas
 
 ./tanzu-sync/scripts/deploy.sh
 
-# additional tools
-# kubectl apply -f- gorkem/tools/local-issuer.yaml
-# ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f gorkem/tools/gitea.yaml|kubectl apply -f-
-# ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f gorkem/tools/nexus.yaml|kubectl apply -f-
-# ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f gorkem/tools/minio.yaml|kubectl apply -f-
+echo "Waiting for the clusterissuers.cert-manager.io CRD to become available... So that we will add CA Cert"
+
+while ! kubectl get crd clusterissuers.cert-manager.io > /dev/null 2>&1; do
+  sleep 5
+done
+
+echo "The clusterissuers.cert-manager.io CRD is now available."
+
+ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/local-issuer.yaml|kubectl apply -f-
+ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/gitea.yaml|kubectl apply -f-
+ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/nexus.yaml|kubectl apply -f-
+ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/minio.yaml|kubectl apply -f-
+
+
+# minio mc client
+if ! command -v mc >/dev/null 2>&1 ; then
+  echo "mc not installed. Use below to install"
+  echo "uname -s| grep Darwin && wget https://dl.min.io/client/mc/release/darwin-amd64/mc && chmod +x mc && cp mc /usr/local/bin/mc"
+  echo "uname -s| grep Linux && wget https://dl.min.io/client/mc/release/linux-amd64/mc && chmod +x mc && cp mc /usr/local/bin/mc"
+  echo "Exiting...."
+  exit 1
+fi
+
+export minioURL="minio.tmc.h2o-4-10367.h2o.vmware.com"
+wget https://toolbox-data.anchore.io/grype/databases/listing.json
+jq --arg v1 "$v1" '{ "available": { "1" : [.available."1"[0]] , "2" : [.available."2"[0]], "3" : [.available."3"[0]] , "4" : [.available."4"[0]] , "5" : [.available."5"[0]] } }' listing.json > listing.json.tmp
+mv listing.json.tmp listing.json
+wget $(cat listing.json |jq -r '.available."1"[0].url')
+wget $(cat listing.json |jq -r '.available."2"[0].url')
+wget $(cat listing.json |jq -r '.available."3"[0].url')
+wget $(cat listing.json |jq -r '.available."4"[0].url')
+wget $(cat listing.json |jq -r '.available."5"[0].url')
+sed -i -e "s|toolbox-data.anchore.io|$minioURL|g" listing.json
+#mc alias set minio https://$minioURL:443 minio minio123
+mc cp *.tar.gz minio/grype/databases/
+mc cp listing.json minio/grype/databases/

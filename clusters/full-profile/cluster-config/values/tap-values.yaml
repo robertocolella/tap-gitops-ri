@@ -51,7 +51,7 @@ tap_install:
         url: ""
     grype:
       namespace: my-apps
-      targetImagePullSecret: tap-registry
+      targetImagePullSecret: registry-credentials
     policy:
       tuf_enabled: false
     tap_telemetry:

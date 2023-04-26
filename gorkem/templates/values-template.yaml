@@ -19,3 +19,7 @@ ca_cert_data-disabled: |
   -----BEGIN CERTIFICATE-----
   MIIFXzCCA0egAwIBAgIJAJYm37SFocjlMA0GCSqGSIb3DQEBDQUAMEY...
   -----END CERTIFICATE-----
+ca_cert_key-disabled: |
+  -----BEGIN PRIVATE KEY-----
+  MIIFXzCCA0egAwIBAgIJAJYm37SFocjlMA0GCSqGSIb3DQEBDQUAMEY...
+  -----END PRIVATE KEY-----

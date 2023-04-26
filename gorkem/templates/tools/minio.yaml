@@ -52,6 +52,8 @@ spec:
           value: "minio"
         - name: MINIO_SECRET_KEY
           value: "minio123"
+        - name: MINIO_BROWSER_REDIRECT_URL
+          value: #@ "https://minio-console.{}".format(data.values.ingress_domain)
         ports:
         - containerPort: 9000
           hostPort: 9000

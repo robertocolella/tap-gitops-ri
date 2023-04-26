@@ -4,6 +4,9 @@ tap_install:
   values:
     shared:
       ingress_domain: #@ data.values.ingress_domain
+      #@ if data.values.ca_cert_data:
+      ingress_issuer: local-issuer
+      #@ end
       image_registry:
         project_path: #@ "{}/{}".format(data.values.image_registry, data.values.image_registry_tap)
       #@ if "ca_cert_data" in data.values:
@@ -45,7 +48,9 @@ tap_install:
     buildservice:
       kp_default_repository: #@ "{}/{}".format(data.values.image_registry, data.values.image_registry_build)
       kp_default_repository_username: #@ data.values.image_registry_user
-      exclude_dependencies: false
+      #@ if data.values.airgapped:
+      exclude_dependencies: true
+      #@ end:
     
     tap_gui:
       service_type: ClusterIP
@@ -59,6 +64,9 @@ tap_install:
     
     cnrs:
       domain_template: "{{.Name}}-{{.Namespace}}.{{.Domain}}"
+      #@ if data.values.ca_cert_data:
+      ingress_issuer: local-issuer
+      #@ end
     
     metadata_store:
       ns_for_export_app_cert: "*"
@@ -70,7 +78,11 @@ tap_install:
     
     grype:
       namespace: "my-apps"
-      targetImagePullSecret: "tap-registry"
+      targetImagePullSecret: "registry-credentials"
+      #@ if data.values.airgapped:
+      db:
+        dbUpdateUrl: #@ "https://minio.{}/grype/databases/listing.json".format(data.values.ingress_domain)
+      #@ end
     
     policy:
       tuf_enabled: false
