@@ -1,4 +1,5 @@
 #@ load("@ytt:data", "data")
+#@yaml/map-key-override
 ---
 tap_install:
   values:
@@ -24,21 +25,30 @@ tap_install:
         server: #@ "{}".format(data.values.image_registry)
         repository: #@ "{}".format(data.values.image_registry_supply_chain)
       gitops:
+        #@ if/end not data.values.ca_cert_data:
         ssh_secret: ""
+        #@ if/end data.values.ca_cert_data:
+        ssh_secret: "git-secret"
     
     ootb_supply_chain_testing:
       registry:
         server: #@ "{}".format(data.values.image_registry)
         repository: #@ "{}".format(data.values.image_registry_supply_chain)
       gitops:
+        #@ if/end not data.values.ca_cert_data:
         ssh_secret: ""
+        #@ if/end data.values.ca_cert_data:
+        ssh_secret: "git-secret"
     
     ootb_supply_chain_testing_scanning:
       registry:
         server: #@ "{}".format(data.values.image_registry)
         repository: #@ "{}".format(data.values.image_registry_supply_chain)
       gitops:
+        #@ if/end not data.values.ca_cert_data:
         ssh_secret: ""
+        #@ if/end data.values.ca_cert_data:
+        ssh_secret: "git-secret"
     
     contour:
       envoy:
@@ -50,7 +60,7 @@ tap_install:
       kp_default_repository_username: #@ data.values.image_registry_user
       #@ if data.values.airgapped:
       exclude_dependencies: true
-      #@ end:
+      #@ end
     
     tap_gui:
       service_type: ClusterIP
