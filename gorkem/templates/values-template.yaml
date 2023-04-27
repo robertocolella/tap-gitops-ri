@@ -2,6 +2,9 @@
 ---
 ingress_domain: tap.corp.com
 image_registry: harbor.corp.com
+git_repo: git.tap.corp.com
+git_user: tanzu
+git_password: VMware1!
 tap_version: 1.5.0
 tbs_full_deps: true
 tbs_version: 1.10.8

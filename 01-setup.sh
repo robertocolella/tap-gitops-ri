@@ -223,6 +223,27 @@ tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --pas
 
 ./tanzu-sync/scripts/deploy.sh
 
+export GIT_REPO=https://$(yq eval '.git_repo' gorkem/values.yaml)
+export GIT_USER=$(yq eval '.git_user' gorkem/values.yaml)
+export GIT_PASS=$(yq eval '.git_password' gorkem/values.yaml)
+export CA_CERT_B64=$(yq eval '.ca_cert_data' ./gorkem/values.yaml|base64)
+
+cat << EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: workload-git-auth
+  namespace: tap-install
+type: Opaque
+stringData:
+  content.yaml: |
+    git:
+      host: $GIT_REPO
+      username: $GIT_USER
+      password: $GIT_PASS
+      caFile: $CA_CERT_B64
+EOF
+
 echo "Waiting for the clusterissuers.cert-manager.io CRD to become available... So that we will add CA Cert"
 
 while ! kubectl get crd clusterissuers.cert-manager.io > /dev/null 2>&1; do
