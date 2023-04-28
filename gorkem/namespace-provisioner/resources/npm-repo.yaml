@@ -1,0 +1,14 @@
+#@ load("@ytt:data", "data")
+#@yaml/text-templated-strings
+---
+#@ npm_repo = "https://nexus-80.{}/repository/repository/npm/".format(data.values.imported.git.ingress_domain)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: npmrc
+type: npmrc
+stringData:
+  type: npmrc
+  provider: sample
+  .npmrc: |
+    registry=(@= npm_repo @)
