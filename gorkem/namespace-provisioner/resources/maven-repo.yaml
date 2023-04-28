@@ -27,7 +27,7 @@ stringData:
              <server>
                 <id>reposilite</id>
                 <username>(@= username @)</username>
-                <password><(@= password @)></password>
+                <password>(@= password @)</password>
              </server>
         </servers>
     </settings>
