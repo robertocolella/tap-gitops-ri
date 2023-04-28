@@ -18,6 +18,7 @@ tanzuNet_password: 'password'
 profile: full
 supply_chain: basic
 airgapped: true
+maven_repo-disabled: https://nexus-80.tap.corp.com/repository/maven-central/
 ca_cert_data-disabled: |
   -----BEGIN CERTIFICATE-----
   MIIFXzCCA0egAwIBAgIJAJYm37SFocjlMA0GCSqGSIb3DQEBDQUAMEY...

@@ -1,3 +1,43 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: git-ca
+  annotations:
+    tekton.dev/git-0: https://git.tmc.h2o-4-10367.h2o.vmware.com
+type: kubernetes.io/basic-auth
+data:
+  username: dGFuenU=
+  password: Vk13YXJlMSE=
+  caFile: LS0tLS1CRUdJTiBDR...
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: settings-xml
+type: service.binding/maven
+stringData:
+  type: maven
+  provider: sample
+  settings.xml: |
+    <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+        <mirrors>
+            <mirror>
+                <id>reposilite</id>
+                <name>Tanzu seal Internal Repo</name>
+                <url>https://nexus-80.tmc.h2o-4-10367.h2o.vmware.com/repository/maven-central/</url>
+                <mirrorOf>*</mirrorOf>
+            </mirror>
+        </mirrors>
+        <servers>
+             <server>
+                <id>reposilite</id>
+                <username>admin</username>
+                <password>VMware1!</password>
+             </server>
+        </servers>
+    </settings>
+---
 apiVersion: carto.run/v1alpha1
 kind: Workload
 metadata:
@@ -10,6 +50,10 @@ spec:
   params:
   - name: gitops_ssh_secret
     value: git-ca
+  - name: buildServiceBindings
+    value:
+    - kind: Secret
+      name: settings-xml
   source:
     git:
       url: https://git.tmc.h2o-4-10367.h2o.vmware.com/tanzu/tanzu-java-web-app

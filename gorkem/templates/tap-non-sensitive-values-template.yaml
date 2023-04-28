@@ -29,6 +29,12 @@ tap_install:
         ssh_secret: ""
         #@ if/end data.values.ca_cert_data:
         ssh_secret: "git-secret"
+      #@ if data.values.maven_repo:
+      maven:
+        repository:
+          url: #@ data.values.maven_repo
+          secret_name: "maven-credentials"
+      #@ end
     
     ootb_supply_chain_testing:
       registry:
@@ -39,6 +45,12 @@ tap_install:
         ssh_secret: ""
         #@ if/end data.values.ca_cert_data:
         ssh_secret: "git-secret"
+      #@ if data.values.maven_repo:
+      maven:
+        repository:
+          url: #@ data.values.maven_repo
+          secret_name: "maven-credentials"
+      #@ end
     
     ootb_supply_chain_testing_scanning:
       registry:
@@ -49,7 +61,13 @@ tap_install:
         ssh_secret: ""
         #@ if/end data.values.ca_cert_data:
         ssh_secret: "git-secret"
-    
+      #@ if data.values.maven_repo:
+      maven:
+        repository:
+          url: #@ data.values.maven_repo
+          secret_name: "maven-credentials"
+      #@ end
+
     contour:
       envoy:
         service:

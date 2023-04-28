@@ -226,7 +226,8 @@ tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --pas
 export GIT_REPO=https://$(yq eval '.git_repo' gorkem/values.yaml)
 export GIT_USER=$(yq eval '.git_user' gorkem/values.yaml)
 export GIT_PASS=$(yq eval '.git_password' gorkem/values.yaml)
-export CA_CERT_B64=$(yq eval '.ca_cert_data' ./gorkem/values.yaml|base64)
+export CA_CERT=$(yq eval '.ca_cert_data' ./gorkem/values.yaml)
+export INGRESS_DOMAIN=$(yq eval '.ingress_domain' ./gorkem/values.yaml)
 
 cat << EOF | kubectl apply -f -
 apiVersion: v1
@@ -238,10 +239,12 @@ type: Opaque
 stringData:
   content.yaml: |
     git:
+      ingress_domain: $INGRESS_DOMAIN
       host: $GIT_REPO
       username: $GIT_USER
       password: $GIT_PASS
-      caFile: $CA_CERT_B64
+      caFile: |
+$(echo "$CA_CERT" | sed 's/^/        /')
 EOF
 
 echo "Waiting for the clusterissuers.cert-manager.io CRD to become available... So that we will add CA Cert"
