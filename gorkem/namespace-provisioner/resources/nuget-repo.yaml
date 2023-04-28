@@ -1,0 +1,17 @@
+#@ load("@ytt:data", "data")
+#@yaml/text-templated-strings
+---
+#@ nuget_repo = "https://nexus-80.{}/repository/nuget.org-proxy/index.json".format(data.values.imported.git.ingress_domain)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nugetconfig
+type: nugetconfig
+stringData:
+  NuGet.Config: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <configuration>
+      <packageSources>
+        <add key="MyInternalRepo" value="(@= nuget_repo @)" />
+      </packageSources>
+    </configuration>
