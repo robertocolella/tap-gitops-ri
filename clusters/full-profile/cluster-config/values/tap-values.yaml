@@ -12,19 +12,31 @@ tap_install:
         server: harbor.mgt.mytanzu.org
         repository: tap-15/supplychain
       gitops:
-        ssh_secret: ""
+        ssh_secret: "git-secret"
+      maven:
+        repository:
+          url: https://nexus-80.tmc.h2o-4-10367.h2o.vmware.com/repository/maven-central/
+          secret_name: "maven-credentials"
     ootb_supply_chain_testing:
       registry:
         server: harbor.mgt.mytanzu.org
         repository: tap-15/supplychain
       gitops:
-        ssh_secret: ""
+        ssh_secret: "git-secret"
+      maven:
+        repository:
+          url: https://nexus-80.tmc.h2o-4-10367.h2o.vmware.com/repository/maven-central/
+          secret_name: "maven-credentials"
     ootb_supply_chain_testing_scanning:
       registry:
         server: harbor.mgt.mytanzu.org
         repository: tap-15/supplychain
       gitops:
-        ssh_secret: ""
+        ssh_secret: "git-secret"
+      maven:
+        repository:
+          url: https://nexus-80.tmc.h2o-4-10367.h2o.vmware.com/repository/maven-central/
+          secret_name: "maven-credentials"
     contour:
       envoy:
         service:
@@ -52,6 +64,8 @@ tap_install:
     grype:
       namespace: my-apps
       targetImagePullSecret: registry-credentials
+      db:
+        dbUpdateUrl: https://minio.tmc.h2o-4-10367.h2o.vmware.com/grype/databases/listing.json
     policy:
       tuf_enabled: false
     tap_telemetry:
@@ -68,3 +82,7 @@ tap_install:
           subPath: gorkem/namespace-provisioner/resources
           url: https://github.com/gorkemozlu/tap-gitops-ri.git
         path: _ytt_lib/resources
+      import_data_values_secrets:
+      - name: workload-git-auth
+        namespace: tap-install
+        create_export: true
