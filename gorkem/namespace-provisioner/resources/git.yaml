@@ -6,7 +6,7 @@ kind: Secret
 metadata:
   name: git-secret
   annotations:
-    tekton.dev/git-0: #@ "https://git.{}".format(data.values.imported.git.host)
+    tekton.dev/git-0: #@ "{}".format(data.values.imported.git.host)
 type: kubernetes.io/basic-auth
 data:
   username: #@ base64.encode(data.values.imported.git.username)
