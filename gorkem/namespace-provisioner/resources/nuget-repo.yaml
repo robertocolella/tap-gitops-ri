@@ -8,6 +8,7 @@ metadata:
   name: nugetconfig
 type: nugetconfig
 stringData:
+  type: nugetconfig
   NuGet.Config: |
     <?xml version="1.0" encoding="utf-8"?>
     <configuration>
