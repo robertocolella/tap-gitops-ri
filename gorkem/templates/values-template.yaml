@@ -2,11 +2,11 @@
 ---
 ingress_domain: tap.corp.com
 image_registry: harbor.corp.com
-git_repo: git.tap.corp.com
-git_user: tanzu
-git_password: VMware1!
+git_repo: #git.tap.corp.com
+git_user: #tanzu
+git_password: #VMware1!
 tap_version: 1.5.0
-tbs_full_deps: true
+tbs_full_deps: false
 tbs_version: 1.10.8
 image_registry_tap: tap-15
 image_registry_build: tap-15/build
@@ -17,13 +17,13 @@ tanzuNet_username: 'username@corp.com'
 tanzuNet_password: 'password'
 profile: full
 supply_chain: basic
-airgapped: true
-maven_repo-disabled: https://nexus-80.tap.corp.com/repository/maven-central/
-ca_cert_data-disabled: |
+airgapped: false
+maven_repo: #https://nexus-80.tap.corp.com/repository/maven-central/
+ca_cert_data: |
   -----BEGIN CERTIFICATE-----
   MIIFXzCCA0egAwIBAgIJAJYm37SFocjlMA0GCSqGSIb3DQEBDQUAMEY...
   -----END CERTIFICATE-----
-ca_cert_key-disabled: |
+ca_cert_key: |
   -----BEGIN PRIVATE KEY-----
   MIIFXzCCA0egAwIBAgIJAJYm37SFocjlMA0GCSqGSIb3DQEBDQUAMEY...
   -----END PRIVATE KEY-----

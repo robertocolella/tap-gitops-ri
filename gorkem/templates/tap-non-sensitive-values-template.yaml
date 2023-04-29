@@ -25,9 +25,9 @@ tap_install:
         server: #@ "{}".format(data.values.image_registry)
         repository: #@ "{}".format(data.values.image_registry_supply_chain)
       gitops:
-        #@ if/end not data.values.ca_cert_data:
+        #@ if/end not data.values.git_repo:
         ssh_secret: ""
-        #@ if/end data.values.ca_cert_data:
+        #@ if/end data.values.git_repo:
         ssh_secret: "git-secret"
       #@ if data.values.maven_repo:
       maven:
@@ -41,9 +41,9 @@ tap_install:
         server: #@ "{}".format(data.values.image_registry)
         repository: #@ "{}".format(data.values.image_registry_supply_chain)
       gitops:
-        #@ if/end not data.values.ca_cert_data:
+        #@ if/end not data.values.git_repo:
         ssh_secret: ""
-        #@ if/end data.values.ca_cert_data:
+        #@ if/end data.values.git_repo:
         ssh_secret: "git-secret"
       #@ if data.values.maven_repo:
       maven:
@@ -57,9 +57,9 @@ tap_install:
         server: #@ "{}".format(data.values.image_registry)
         repository: #@ "{}".format(data.values.image_registry_supply_chain)
       gitops:
-        #@ if/end not data.values.ca_cert_data:
+        #@ if/end not data.values.git_repo:
         ssh_secret: ""
-        #@ if/end data.values.ca_cert_data:
+        #@ if/end data.values.git_repo:
         ssh_secret: "git-secret"
       #@ if data.values.maven_repo:
       maven:
@@ -111,7 +111,6 @@ tap_install:
       db:
         dbUpdateUrl: #@ "https://minio.{}/grype/databases/listing.json".format(data.values.ingress_domain)
       #@ end
-    
     policy:
       tuf_enabled: false
     tap_telemetry:
@@ -129,6 +128,7 @@ tap_install:
           subPath: gorkem/namespace-provisioner/resources
           url: https://github.com/gorkemozlu/tap-gitops-ri.git
         path: _ytt_lib/resources
+      #@ if/end not data.values.git_repo:
       import_data_values_secrets:
       - name: workload-git-auth
         namespace: tap-install
