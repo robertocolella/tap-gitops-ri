@@ -58,7 +58,7 @@ uname -s| grep Linux && pivnet download-product-files --product-slug='tanzu-clus
 
 mkdir gorkem/tanzu-cluster-essentials
 tar -xvf gorkem/tanzu-cluster-essentials-*.tgz -C gorkem/tanzu-cluster-essentials
-cp ./gorkem/templates/values-template.yaml ./gorkem/values.yaml
+#cp ./gorkem/templates/values-template.yaml ./gorkem/values.yaml
 
 kubectl create clusterrolebinding default-tkg-admin-privileged-binding --clusterrole=psp:vmware-system-privileged --group=system:authenticated
 
