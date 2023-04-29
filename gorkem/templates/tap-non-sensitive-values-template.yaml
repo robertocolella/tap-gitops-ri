@@ -111,6 +111,14 @@ tap_install:
       db:
         dbUpdateUrl: #@ "https://minio.{}/grype/databases/listing.json".format(data.values.ingress_domain)
       #@ end
+
+    #@ if data.values.airgapped:
+    bitnami_services:
+      globals:
+        helm_chart:
+          repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
+    #@ end
+
     policy:
       tuf_enabled: false
     tap_telemetry:
@@ -128,7 +136,7 @@ tap_install:
           subPath: gorkem/namespace-provisioner/resources
           url: https://github.com/gorkemozlu/tap-gitops-ri.git
         path: _ytt_lib/resources
-      #@ if/end not data.values.git_repo:
+      #@ if/end data.values.git_repo:
       import_data_values_secrets:
       - name: workload-git-auth
         namespace: tap-install
