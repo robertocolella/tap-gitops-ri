@@ -59,6 +59,14 @@ if ! command -v mc >/dev/null 2>&1 ; then
   exit 1
 fi
 
+if [ -f tanzu-gitops-ri-*.tgz ] && [ -f gorkem/values.yaml ]; then
+    echo "required files exist, continuing."
+else
+    echo "check tanzu-gitops-ri-*.tgz and/or gorkem/values.yaml do not exist."
+    exit 1
+fi
+
+
 rm -rf .git
 rm -rf .catalog
 rm -rf clusters
@@ -147,7 +155,7 @@ cd ./clusters/full-profile
 ./tanzu-sync/scripts/configure.sh
 cd ../../
 
-#tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --password $HARBOR_PASSWORD --server $HARBOR_URL --namespace my-apps --export-to-all-namespaces
+tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --password $HARBOR_PASSWORD --server $HARBOR_URL --namespace default --export-to-all-namespaces
 
 ./tanzu-sync/scripts/deploy.sh
 
@@ -179,7 +187,7 @@ EOF
   export remote_branch_=$( git status --porcelain=2 --branch | grep "^# branch.upstream" | awk '{ print $3 }' )
   export remote_name_=$( echo $remote_branch_ | awk -F/ '{ print $1 }' )
   export remote_url_=$( git config --get remote.${remote_name_}.url )
-  ytt --ignore-unknown-comments --data-value git_push_repo=$remote_url -f gorkem/templates/dependant-resources-app.yaml > clusters/full-profile/cluster-config/dependant-resources-app.yaml
+  ytt --ignore-unknown-comments --data-value git_push_repo=$remote_url_ -f gorkem/templates/dependant-resources-app.yaml > clusters/full-profile/cluster-config/config/dependant-resources-app.yaml
   
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/local-issuer.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/local-issuer.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/gitea.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/gitea.yaml
