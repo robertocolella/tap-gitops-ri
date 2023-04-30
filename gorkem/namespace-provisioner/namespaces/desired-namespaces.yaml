@@ -5,3 +5,4 @@
 namespaces:
 - name: my-apps
 - name: dev
+- name: gorkem
