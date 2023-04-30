@@ -68,9 +68,6 @@ rm -rf setup-repo.sh
 tar -xvf tanzu-gitops-ri-*.tgz
 ./setup-repo.sh full-profile sops
 
-# Download Cluster-Essentials
-mkdir gorkem/tanzu-cluster-essentials
-tar -xvf gorkem/tanzu-cluster-essentials-*.tgz -C gorkem/tanzu-cluster-essentials
 #cp ./gorkem/templates/values-template.yaml ./gorkem/values.yaml
 
 kubectl create clusterrolebinding default-tkg-admin-privileged-binding --clusterrole=psp:vmware-system-privileged --group=system:authenticated
@@ -148,14 +145,9 @@ git push -u origin main
 
 cd ./clusters/full-profile
 ./tanzu-sync/scripts/configure.sh
+cd ../../
 
-git add ./cluster-config/ ./tanzu-sync/
-git commit -m "Configure install of TAP 1.5.0"
-git push
-
-kubectl create ns my-apps
-kubectl label ns my-apps apps.tanzu.vmware.com/tap-ns=""
-tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --password $HARBOR_PASSWORD --server $HARBOR_URL --namespace my-apps --export-to-all-namespaces
+#tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --password $HARBOR_PASSWORD --server $HARBOR_URL --namespace my-apps --export-to-all-namespaces
 
 ./tanzu-sync/scripts/deploy.sh
 
@@ -165,8 +157,8 @@ if [ "$AIRGAPPED" = "true" ]; then
   export GIT_PASS=$(yq eval '.git_password' gorkem/values.yaml)
   export CA_CERT=$(yq eval '.ca_cert_data' ./gorkem/values.yaml)
   export INGRESS_DOMAIN=$(yq eval '.ingress_domain' ./gorkem/values.yaml)
-  
-cat << EOF | kubectl apply -f -
+  mkdir -p ./clusters/full-profile/cluster-config/dependant-resources/tools
+cat > ./clusters/full-profile/cluster-config/dependant-resources/tools/workload-git-auth.yaml <<-EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -184,23 +176,21 @@ stringData:
 $(echo "$CA_CERT" | sed 's/^/        /')
 EOF
   
-  echo "Waiting for the clusterissuers.cert-manager.io CRD to become available... So that we will add CA Cert"
+  export remote_branch_=$( git status --porcelain=2 --branch | grep "^# branch.upstream" | awk '{ print $3 }' )
+  export remote_name_=$( echo $remote_branch_ | awk -F/ '{ print $1 }' )
+  export remote_url_=$( git config --get remote.${remote_name_}.url )
+  ytt --ignore-unknown-comments --data-value git_push_repo=$remote_url -f gorkem/templates/dependant-resources-app.yaml > clusters/full-profile/cluster-config/dependant-resources-app.yaml
   
-  while ! kubectl get crd clusterissuers.cert-manager.io > /dev/null 2>&1; do
-    sleep 5
-  done
-  
-  echo "The clusterissuers.cert-manager.io CRD is now available."
-  
-  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/local-issuer.yaml|kubectl apply -f-
-  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/gitea.yaml|kubectl apply -f-
-  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/nexus.yaml|kubectl apply -f-
-  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/minio.yaml|kubectl apply -f-
+  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/local-issuer.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/local-issuer.yaml
+  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/gitea.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/gitea.yaml
+  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/nexus.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/nexus.yaml
+  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/minio.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/minio.yaml
 
 fi
+cd ./clusters/full-profile
 
-echo "The clusterissuers.cert-manager.io CRD is now available."
-while ! kubectl get crd clusterissuers.cert-manager.io > /dev/null 2>&1; do
-  sleep 5
-done
-ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/local-issuer.yaml|kubectl apply -f-
+git add ./cluster-config/ ./tanzu-sync/
+git commit -m "Configure install of TAP 1.5.0"
+git push
+
+./tanzu-sync/scripts/deploy.sh
