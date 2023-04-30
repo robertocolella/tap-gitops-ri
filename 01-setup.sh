@@ -41,21 +41,34 @@ if ! command -v kapp >/dev/null 2>&1 ; then
 
 fi
 
+# imgpkg
+if ! command -v imgpkg >/dev/null 2>&1 ; then
+  echo "imgpkg not installed. Use below to install"
+  echo "uname -s| grep Darwin && wget https://github.com/carvel-dev/imgpkg/releases/download/v0.31.3/imgpkg-darwin-amd64 && chmod +x imgpkg-darwin-amd64 && cp imgpkg-darwin-amd64 /usr/local/bin/imgpkg"
+  echo "uname -s| grep Linux && wget https://github.com/carvel-dev/imgpkg/releases/download/v0.31.3/imgpkg-linux-amd64 && chmod +x imgpkg-linux-amd64 && cp imgpkg-linux-amd64 /usr/local/bin/imgpkg"
+  echo "Exiting...."
+  exit 1
+fi
+
+# minio mc client
+if ! command -v mc >/dev/null 2>&1 ; then
+  echo "mc not installed. Use below to install"
+  echo "uname -s| grep Darwin && wget https://dl.min.io/client/mc/release/darwin-amd64/mc && chmod +x mc && cp mc /usr/local/bin/mc"
+  echo "uname -s| grep Linux && wget https://dl.min.io/client/mc/release/linux-amd64/mc && chmod +x mc && cp mc /usr/local/bin/mc"
+  echo "Exiting...."
+  exit 1
+fi
+
 rm -rf .git
 rm -rf .catalog
 rm -rf clusters
 rm -rf setup-repo.sh
 
 # GitOps Ref. Implementation
-pivnet download-product-files --product-slug='tanzu-application-platform' --release-version='1.5.0' --product-file-id=1467377
 tar -xvf tanzu-gitops-ri-*.tgz
 ./setup-repo.sh full-profile sops
 
 # Download Cluster-Essentials
-
-uname -s| grep Darwin && pivnet download-product-files --product-slug='tanzu-cluster-essentials' --release-version='1.5.0' --product-file-id=1460874 && mv tanzu-cluster-essentials-darwin-amd64-1.5.0.tgz gorkem/
-uname -s| grep Linux && pivnet download-product-files --product-slug='tanzu-cluster-essentials' --release-version='1.5.0' --product-file-id=1460876 && mv tanzu-cluster-essentials-linux-amd64-1.5.0.tgz gorkem/
-
 mkdir gorkem/tanzu-cluster-essentials
 tar -xvf gorkem/tanzu-cluster-essentials-*.tgz -C gorkem/tanzu-cluster-essentials
 #cp ./gorkem/templates/values-template.yaml ./gorkem/values.yaml
@@ -63,79 +76,6 @@ tar -xvf gorkem/tanzu-cluster-essentials-*.tgz -C gorkem/tanzu-cluster-essential
 kubectl create clusterrolebinding default-tkg-admin-privileged-binding --clusterrole=psp:vmware-system-privileged --group=system:authenticated
 
 export AIRGAPPED=$(yq eval '.airgapped' gorkem/values.yaml)
-if [ "$AIRGAPPED" = "true" ]; then
-    export IMGPKG_REGISTRY_HOSTNAME_0=registry.tanzu.vmware.com
-    export IMGPKG_REGISTRY_USERNAME_0=$(yq eval '.tanzuNet_username' gorkem/values.yaml)
-    export IMGPKG_REGISTRY_PASSWORD_0=$(yq eval '.tanzuNet_password' gorkem/values.yaml)
-    export IMGPKG_REGISTRY_HOSTNAME_1=$(yq eval '.image_registry' ./gorkem/values.yaml)
-    export IMGPKG_REGISTRY_USERNAME_1=$(yq eval '.image_registry_user' ./gorkem/values.yaml)
-    export IMGPKG_REGISTRY_PASSWORD_1=$(yq eval '.image_registry_password' ./gorkem/values.yaml)
-    export IMGPKG_REGISTRY_HOSTNAME=$(yq eval '.image_registry' ./gorkem/values.yaml)
-    export IMGPKG_REGISTRY_USERNAME=$(yq eval '.image_registry_user' ./gorkem/values.yaml)
-    export IMGPKG_REGISTRY_PASSWORD=$(yq eval '.image_registry_password' ./gorkem/values.yaml)
-    export TAP_VERSION=$(yq eval '.tap_version' ./gorkem/values.yaml)
-    export TBS_VERSION=$(yq eval '.tbs_version' ./gorkem/values.yaml)
-    yq eval '.ca_cert_data' ./gorkem/values.yaml | sed 's/^[ ]*//' > ./gorkem/ca.crt
-    export REGISTRY_CA_PATH="$(pwd)/gorkem/ca.crt"
-
-    imgpkg copy \
-      -b registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:$TAP_VERSION \
-      --to-tar tap-packages-$TAP_VERSION.tar \
-      --include-non-distributable-layers \
-      --concurrency 30
-
-    imgpkg copy \
-      --tar tap-packages-$TAP_VERSION.tar \
-      --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/tap \
-      --include-non-distributable-layers \
-      --concurrency 30 \
-      --registry-ca-cert-path $REGISTRY_CA_PATH
-
-    export TAP_PKGR_REPO=$IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/tap
-
-    imgpkg copy -b registry.tanzu.vmware.com/tanzu-application-platform/full-tbs-deps-package-repo:$TBS_VERSION \
-      --to-tar=tbs-full-deps.tar --concurrency 30
-
-    imgpkg copy --tar tbs-full-deps.tar \
-      --to-repo=$IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/tbs-full-deps --concurrency 30 --registry-ca-cert-path $REGISTRY_CA_PATH
-
-    export KAPP_NS=$(kubectl get pods --all-namespaces -l app=kapp-controller -o jsonpath='{range .items[*]}{.metadata.namespace}{" "}{.status.phase}{"\n"}{end}'|awk '{print $1}')
-    export KAPP_POD=$(kubectl get pods --all-namespaces -l app=kapp-controller -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'|awk '{print $1}')
-
-    if [ -n "$KAPP_NS" ]; then
-        echo "kapp is running, adding ca.cert"
-        kubectl create secret generic kapp-controller-config \
-           --namespace $KAPP_NS \
-           --from-file caCerts=gorkem/ca.crt
-
-        kubectl delete pod $KAPP_POD -n $KAPP_NS
-    else
-        echo "kapp is not running, therefore installing."
-        kubectl create namespace kapp-controller
-        kubectl create secret generic kapp-controller-config \
-           --namespace kapp-controller \
-           --from-file caCerts=gorkem/ca.crt
-        imgpkg copy \
-          -b registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:79abddbc3b49b44fc368fede0dab93c266ff7c1fe305e2d555ed52d00361b446 \
-          --to-tar cluster-essentials-bundle-1.5.0.tar \
-          --include-non-distributable-layers
-        imgpkg copy \
-          --tar cluster-essentials-bundle-1.5.0.tar \
-          --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/cluster-essentials-bundle \
-          --include-non-distributable-layers \
-          --registry-ca-cert-path $REGISTRY_CA_PATH
-
-        export INSTALL_BUNDLE=$IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:79abddbc3b49b44fc368fede0dab93c266ff7c1fe305e2d555ed52d00361b446
-        export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
-        export INSTALL_REGISTRY_USERNAME=$(yq eval '.tanzuNet_username' gorkem/values.yaml)
-        export INSTALL_REGISTRY_PASSWORD=$(yq eval '.tanzuNet_password' gorkem/values.yaml)
-
-        cd gorkem/tanzu-cluster-essentials
-        ./install.sh --yes
-        cd ../..
-    fi
-
-fi
 
 export KAPP_NS=$(kubectl get pods --all-namespaces -l app=kapp-controller -o jsonpath='{range .items[*]}{.metadata.namespace}{" "}{.status.phase}{"\n"}{end}'|awk '{print $1}')
 export KAPP_POD=$(kubectl get pods --all-namespaces -l app=kapp-controller -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'|awk '{print $1}')
@@ -154,11 +94,7 @@ else
     cd ../..
 fi
 
-
-
-
 # setup sops key
-
 sops_age_file="./gorkem/tmp-enc/key.txt"
 
 if [ -e "$sops_age_file" ]; then
@@ -207,7 +143,7 @@ export SOPS_AGE_KEY=$(cat ./gorkem/tmp-enc/key.txt)
 
 
 git init && git add . && git commit -m "Big Bang" && git branch -M main
-git remote add origin https://github.com/gorkemozlu/tap-gitops-2.git
+git remote add origin https://github.com/gorkemozlu/tap-gitops-3.git
 git push -u origin main
 
 cd ./clusters/full-profile
@@ -230,23 +166,23 @@ if [ "$AIRGAPPED" = "true" ]; then
   export CA_CERT=$(yq eval '.ca_cert_data' ./gorkem/values.yaml)
   export INGRESS_DOMAIN=$(yq eval '.ingress_domain' ./gorkem/values.yaml)
   
-  cat << EOF | kubectl apply -f -
-  apiVersion: v1
-  kind: Secret
-  metadata:
-    name: workload-git-auth
-    namespace: tap-install
-  type: Opaque
-  stringData:
-    content.yaml: |
-      git:
-        ingress_domain: $INGRESS_DOMAIN
-        host: $GIT_REPO
-        username: $GIT_USER
-        password: $GIT_PASS
-        caFile: |
-  $(echo "$CA_CERT" | sed 's/^/        /')
-  EOF
+cat << EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: workload-git-auth
+  namespace: tap-install
+type: Opaque
+stringData:
+  content.yaml: |
+    git:
+      ingress_domain: $INGRESS_DOMAIN
+      host: $GIT_REPO
+      username: $GIT_USER
+      password: $GIT_PASS
+      caFile: |
+$(echo "$CA_CERT" | sed 's/^/        /')
+EOF
   
   echo "Waiting for the clusterissuers.cert-manager.io CRD to become available... So that we will add CA Cert"
   
@@ -260,30 +196,6 @@ if [ "$AIRGAPPED" = "true" ]; then
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/gitea.yaml|kubectl apply -f-
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/nexus.yaml|kubectl apply -f-
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/minio.yaml|kubectl apply -f-
-  
-  
-  # minio mc client
-  if ! command -v mc >/dev/null 2>&1 ; then
-    echo "mc not installed. Use below to install"
-    echo "uname -s| grep Darwin && wget https://dl.min.io/client/mc/release/darwin-amd64/mc && chmod +x mc && cp mc /usr/local/bin/mc"
-    echo "uname -s| grep Linux && wget https://dl.min.io/client/mc/release/linux-amd64/mc && chmod +x mc && cp mc /usr/local/bin/mc"
-    echo "Exiting...."
-    exit 1
-  fi
-  
-  export minioURL="minio.tmc.h2o-4-10367.h2o.vmware.com"
-  wget https://toolbox-data.anchore.io/grype/databases/listing.json
-  jq --arg v1 "$v1" '{ "available": { "1" : [.available."1"[0]] , "2" : [.available."2"[0]], "3" : [.available."3"[0]] , "4" : [.available."4"[0]] , "5" : [.available."5"[0]] } }' listing.json > listing.json.tmp
-  mv listing.json.tmp listing.json
-  wget $(cat listing.json |jq -r '.available."1"[0].url')
-  wget $(cat listing.json |jq -r '.available."2"[0].url')
-  wget $(cat listing.json |jq -r '.available."3"[0].url')
-  wget $(cat listing.json |jq -r '.available."4"[0].url')
-  wget $(cat listing.json |jq -r '.available."5"[0].url')
-  sed -i -e "s|toolbox-data.anchore.io|$minioURL|g" listing.json
-  #mc alias set minio https://$minioURL:443 minio minio123
-  mc cp *.tar.gz minio/grype/databases/
-  mc cp listing.json minio/grype/databases/
 
 fi
 

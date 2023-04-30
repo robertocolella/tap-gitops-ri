@@ -53,7 +53,7 @@ spec:
     spec:
       containers:
       - name: gitea
-        image: projects.registry.vmware.com/tanzu_meta_pocs/tools/gitea/gitea:1.13.2
+        image: projects.registry.vmware.com/tanzu_meta_pocs/tools/gitea:1.13.2
         ports:
         - containerPort: 3000
           name: gitea

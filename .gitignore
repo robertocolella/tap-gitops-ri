@@ -7,3 +7,4 @@ gorkem/values.yaml
 gorkem/ca.crt
 *.tgz
 *.tar
+airgapped-files/*
