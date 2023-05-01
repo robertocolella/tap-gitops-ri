@@ -219,10 +219,10 @@ elif [ "$1" = "import-packages" ]; then
     mc mb minio/grype --insecure
     mc cp airgapped-files/vulnerability*.tar.gz minio/grype/databases/ --insecure
     mc cp airgapped-files/listing.json minio/grype/databases/ --insecure
-    
-cat > airgapped-files/02-bitnami-from-local.yaml <<-EOF
+    cd airgapped-files/
+cat > 02-bitnami-from-local.yaml <<-EOF
 source:
-  intermediateBundlesPath: airgapped-files/bitnami-local
+  intermediateBundlesPath: bitnami-local
 target:
   containerRegistry: $HARBOR_URL
   containerRepository: bitnami/containers
@@ -237,8 +237,8 @@ target:
       username: $HARBOR_USERNAME
       password: $HARBOR_PASSWORD
 EOF
-    charts-syncer sync --config airgapped-files/02-bitnami-from-local.yaml
-
+    charts-syncer sync --config 02-bitnami-from-local.yaml
+    cd ..
 
 else
     echo "Invalid parameter: $1"
