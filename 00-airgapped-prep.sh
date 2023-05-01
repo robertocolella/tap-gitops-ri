@@ -219,6 +219,7 @@ elif [ "$1" = "import-packages" ]; then
     mc mb minio/grype --insecure
     mc cp airgapped-files/vulnerability*.tar.gz minio/grype/databases/ --insecure
     mc cp airgapped-files/listing.json minio/grype/databases/ --insecure
+    mc anonymous set download minio/grype --insecure
     cd airgapped-files/
 cat > 02-bitnami-from-local.yaml <<-EOF
 source:
