@@ -133,6 +133,8 @@ mv ./gorkem/tmp-enc/tap-sensitive-values.sops.yaml ./clusters/full-profile/clust
 
 ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/custom-schema-template.yaml > ./clusters/full-profile/cluster-config/config/custom-schema.yaml
 if [ "$AIRGAPPED" = "true" ]; then
+  export IMGPKG_REGISTRY_HOSTNAME_1=$(yq eval '.image_registry' ./gorkem/values.yaml)
+  export TAP_PKGR_REPO=$IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/tap
   cp ./gorkem/templates/tbs-full-deps.yaml ./clusters/full-profile/cluster-config/config/tbs-full-deps.yaml
   export multi_line_text="#@data/values-schema\n#@overlay/match-child-defaults missing_ok=True\n---"
   echo -e "$multi_line_text" | cat - ./clusters/full-profile/cluster-config/config/custom-schema.yaml > temp && mv temp ./clusters/full-profile/cluster-config/config/custom-schema.yaml
@@ -156,8 +158,6 @@ cd ./clusters/full-profile
 cd ../../
 
 tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --password $HARBOR_PASSWORD --server $HARBOR_URL --namespace default --export-to-all-namespaces
-
-./tanzu-sync/scripts/deploy.sh
 
 if [ "$AIRGAPPED" = "true" ]; then
   export GIT_REPO=https://$(yq eval '.git_repo' gorkem/values.yaml)
