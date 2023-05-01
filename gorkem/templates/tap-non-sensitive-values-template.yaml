@@ -106,7 +106,7 @@ tap_install:
     
     grype:
       namespace: "my-apps"
-      targetImagePullSecret: "registry-credentials"
+      targetImagePullSecret: "scanner-secret-ref"
       #@ if data.values.airgapped:
       db:
         dbUpdateUrl: #@ "https://minio.{}/grype/databases/listing.json".format(data.values.ingress_domain)
