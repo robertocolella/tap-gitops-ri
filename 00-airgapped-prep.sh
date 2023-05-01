@@ -10,6 +10,7 @@ export minioURL=minio.$INGRESS_DOMAIN
 export HARBOR_URL=$(yq eval '.image_registry' ./gorkem/values.yaml)
 export HARBOR_USERNAME=$(yq eval '.image_registry_user' ./gorkem/values.yaml)
 export HARBOR_PASSWORD=$(yq eval '.image_registry_password' ./gorkem/values.yaml)
+export HARBOR_TAP_REPO=$(yq eval '.image_registry_tap' ./gorkem/values.yaml)
 export pivnet_token=$(yq eval '.pivnet_token' ./gorkem/values.yaml)
 export IMGPKG_REGISTRY_HOSTNAME_0=registry.tanzu.vmware.com
 export IMGPKG_REGISTRY_USERNAME_0=$(yq eval '.tanzuNet_username' gorkem/values.yaml)
@@ -171,6 +172,9 @@ elif [ "$1" = "import-cli" ]; then
 elif [ "$1" = "import-packages" ]; then
     echo "start importing files...."
     cp $REGISTRY_CA_PATH /etc/ssl/certs/tap-ca.crt
+    curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"${HARBOR_TAP_REPO}\", \"public\": true, \"storage_limit\": -1 }" -k
+    curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"tap-packages\", \"public\": true, \"storage_limit\": -1 }" -k
+    curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"bitnami\", \"public\": true, \"storage_limit\": -1 }" -k
     cp airgapped-files/tanzu-gitops-ri-*.tgz .
     cp airgapped-files/tanzu-cluster-essentials*.tgz gorkem/
     
