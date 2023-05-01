@@ -26,7 +26,8 @@ yq eval '.ca_cert_data' ./gorkem/values.yaml | sed 's/^[ ]*//' > ./gorkem/ca.crt
 export REGISTRY_CA_PATH="$(pwd)/gorkem/ca.crt"
 export TAP_PKGR_REPO=$IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/tap
 pivnet login --api-token $pivnet_token
-
+mkdir -p $HOME/tmp/
+export TMPDIR="$HOME/tmp/"
 
 # check the first parameter
 if [ "$1" = "prep" ]; then
@@ -169,7 +170,7 @@ elif [ "$1" = "import-cli" ]; then
 
 elif [ "$1" = "import-packages" ]; then
     echo "start importing files...."
-
+    cp $REGISTRY_CA_PATH /etc/ssl/certs/tap-ca.crt
     cp airgapped-files/tanzu-gitops-ri-*.tgz .
     cp airgapped-files/tanzu-cluster-essentials*.tgz gorkem/
     
@@ -216,12 +217,12 @@ elif [ "$1" = "import-packages" ]; then
     
     mc alias set minio https://$minioURL minio minio123 --insecure
     mc mb minio/grype --insecure
-    mc cp airgapped-files/grype/vulnerability*.tar.gz minio/grype/databases/ --insecure
-    mc cp airgapped-files/grype/listing.json minio/grype/databases/ --insecure
+    mc cp airgapped-files/vulnerability*.tar.gz minio/grype/databases/ --insecure
+    mc cp airgapped-files/listing.json minio/grype/databases/ --insecure
     
 cat > airgapped-files/02-bitnami-from-local.yaml <<-EOF
 source:
-  intermediateBundlesPath: bitnami-local
+  intermediateBundlesPath: airgapped-files/bitnami-local
 target:
   containerRegistry: $HARBOR_URL
   containerRepository: bitnami/containers
