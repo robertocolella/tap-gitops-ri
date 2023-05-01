@@ -15,6 +15,7 @@ image_registry_user: admin
 image_registry_password: VMware1!
 tanzuNet_username: 'username@corp.com'
 tanzuNet_password: 'password'
+pivnet_token: "token-here"
 profile: full
 supply_chain: basic
 airgapped: false
