@@ -106,6 +106,11 @@ if [ "$1" = "prep" ]; then
         imgpkg copy -i $image --to-tar=$tool.tar
         # do something with the image
     done
+
+    git clone https://github.com/gorkemozlu/weatherforecast-steeltoe-net-tap && rm -rf weatherforecast-steeltoe-net-tap/.git
+    git clone https://github.com/gorkemozlu/tanzu-java-web-app && rm -rf tanzu-java-web-app/.git
+    git clone https://github.com/gorkemozlu/node-express && rm -rf node-express/.git
+    git clone https://github.com/MoSehsah/bank-demo && rm -rf bank-demo/.git
     
     echo "Downloading Bitnami Catalog"
 cat > 01-bitnami-to-local.yaml <<-EOF

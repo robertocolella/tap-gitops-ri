@@ -23,3 +23,4 @@ spec:
       url: https://git.tmc.h2o-4-10367.h2o.vmware.com/tanzu/weather-dotnet.git
       ref:
         branch: main
+#https://github.com/gorkemozlu/weatherforecast-steeltoe-net-tap
