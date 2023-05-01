@@ -1,6 +1,6 @@
 #@ load("@ytt:data", "data")
 ---
-# kubectl exec -it nexus-5c64ff7cd5-gtn5w -n nexus -- cat /nexus-data/admin.password
+# kubectl exec -it $(kubectl get pod -n nexus -l app=nexus -o jsonpath='{.items[0].metadata.name}') -n nexus -- cat /nexus-data/admin.password
 ---
 apiVersion: v1
 kind: Namespace
