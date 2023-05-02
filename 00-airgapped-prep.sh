@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -ne 1 ]; then
-    echo "Usage: $0 prep|import-cli|import-packages"
+    echo "Usage: $0 prep|import-cli|import-packages|gen-cert"
     exit 1
 fi
 
@@ -180,6 +180,9 @@ elif [ "$1" = "import-packages" ]; then
     curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"${HARBOR_TAP_REPO}\", \"public\": true, \"storage_limit\": -1 }" -k
     curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"tap-packages\", \"public\": true, \"storage_limit\": -1 }" -k
     curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"bitnami\", \"public\": true, \"storage_limit\": -1 }" -k
+    #curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X 'POST' "https://nexus-80.$INGRESS_DOMAIN/service/rest/v1/repositories/npm/proxy" -H 'accept: application/json' -H 'Content-Type: application/json' -H 'NX-ANTI-CSRF-TOKEN: 0.11578850459335643' -H 'X-Nexus-UI: true' -d '{"name":"npm","online":true,"storage":{"blobStoreName":"default","strictContentTypeValidation":true,"writePolicy":"ALLOW"},"cleanup":null,"proxy":{"remoteUrl":"https://registry.npmjs.org","contentMaxAge":1440,"metadataMaxAge":1440},"negativeCache":{"enabled":true,"timeToLive":1440},"httpClient":{"blocked":false,"autoBlock":true,"connection":{"retries":null,"userAgentSuffix":null,"timeout":null,"enableCircularRedirects":false,"enableCookies":false,"useTrustStore":false},"authentication":null},"routingRuleName":null,"npm":{"removeNonCataloged":false,"removeQuarantined":false},"format":"npm","type":"proxy"}'
+    #curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X 'POST' -H 'accept: application/json' -H 'Content-Type: application/json' -H 'NX-ANTI-CSRF-TOKEN: 0.11578850459335643' -H 'X-Nexus-UI: true' -d '{"userId": "tanzu", "firstName": "tanzu", "lastName": "tanzu", "emailAddress": "tanzu@tanzu.com", "password": "VMware1!", "status": "active", "roles": ["nx-admin"]}' "https://nexus-80.$INGRESS_DOMAIN/service/rest/v1/security/users"
+
     cp airgapped-files/tanzu-gitops-ri-*.tgz .
     cp airgapped-files/tanzu-cluster-essentials*.tgz gorkem/
     
@@ -249,7 +252,36 @@ target:
 EOF
     charts-syncer sync --config 02-bitnami-from-local.yaml
     cd ..
-
+elif [ "$1" = "gen-cert" ]; then
+    mkdir -p cert/
+    cd cert
+    export DOMAIN=*.$INGRESS_DOMAIN
+    
+    export SUBJ="/C=TR/ST=Istanbul/L=Istanbul/O=Customer, Inc./OU=IT/CN=${DOMAIN}"
+    openssl genrsa -des3 -out ca.key -passout pass:1234 4096
+    openssl req -x509 -new -nodes -key ca.key -sha256 -days 1024 -passin pass:1234 -addext "keyUsage=critical, digitalSignature, cRLSign, keyCertSign" -addext "basicConstraints=critical,CA:true" -out ca.crt -subj "$SUBJ"
+    openssl genrsa -out server-app.key 4096
+    openssl req -sha512 -new \
+          -subj "$SUBJ" \
+          -key server-app.key \
+          -out server-app.csr
+cat > v3.ext <<-EOF
+  authorityKeyIdentifier=keyid,issuer
+  basicConstraints=CA:FALSE
+  keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+  extendedKeyUsage = serverAuth
+  subjectAltName = @alt_names
+  [alt_names]
+  DNS.1=${DOMAIN}
+EOF
+    openssl x509 -req -sha512 -days 3650 \
+          -passin pass:1234 \
+          -extfile v3.ext \
+          -CA ca.crt -CAkey ca.key -CAcreateserial \
+          -in server-app.csr \
+          -out server-app.crt
+    openssl rsa -in ca.key -out ca-no-pass.key -passin pass:1234
+    cd ..
 else
     echo "Invalid parameter: $1"
     exit 1

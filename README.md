@@ -10,6 +10,11 @@ $ cp ./gorkem/templates/values-template.yaml ./gorkem/values.yaml
 
 Then, update the ```./gorkem/values.yaml``` file for TAP values.
 
+If you need to create required certificates:
+```
+$ ./00-airgapped-prep.sh gen-cert
+```
+
 For airgapped environments, run the ```00-airgapped-prep.sh``` script.
 
 Downloading required all packages.
