@@ -1,18 +1,18 @@
 #@data/values
 ---
 ingress_domain: tap.corp.com
-image_registry: harbor.corp.com
+image_registry: harbor.tap.corp.com
 tap_version: 1.5.0
-profile: full
-supply_chain: basic
-image_registry_tap: tap-15
-image_registry_build: tap-15/build
-image_registry_supply_chain: tap-15/supplychain
-image_registry_user: admin
-image_registry_password: VMware1!
+profile: full # supports only full profile for now
+supply_chain: basic # or testing or testing_scanning
 tanzuNet_username: 'username@corp.com'
 tanzuNet_password: 'password'
 pivnet_token: "token-here"
+image_registry_user: admin
+image_registry_password: VMware1!
+image_registry_tap: tap-15
+image_registry_build: tap-15/build
+image_registry_supply_chain: tap-15/supplychain
 airgapped: false
 git_repo: #git.tap.corp.com
 git_user: #tanzu
