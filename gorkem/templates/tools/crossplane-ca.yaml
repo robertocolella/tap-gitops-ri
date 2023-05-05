@@ -1,5 +1,6 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:base64", "base64")
+#@ load("@ytt:json", "json")
 ---
 apiVersion: v1
 data:
@@ -13,7 +14,7 @@ metadata:
 ---
 apiVersion: v1
 stringData:
-  .dockerconfigjson: #@ {"auths":{data.values.image_registry:{"username":data.values.image_registry_user,"password":data.values.image_registry_password,"auth":base64.encode("{}:{}".format(data.values.image_registry_user,data.values.image_registry_password))}}}
+  .dockerconfigjson: #@ base64.encode(json.encode({"auths":{data.values.image_registry:{"username":data.values.image_registry_user,"password":data.values.image_registry_password,"auth":base64.encode("{}:{}".format(data.values.image_registry_user,data.values.image_registry_password))}}}))
 kind: Secret
 metadata:
   creationTimestamp: null
