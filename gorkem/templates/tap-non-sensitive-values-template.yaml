@@ -113,10 +113,54 @@ tap_install:
       #@ end
 
     #@ if data.values.airgapped:
+    crossplane:
+      registryCaBundleConfig:
+        name: ca-bundle-config
+        key: ca-bundle
+    #@ end
+
+    #@ if data.values.airgapped:
     bitnami_services:
-      globals:
+      mysql:
         helm_chart:
-          repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
+          repo: #@ "oci://{}/bitnami/charts/mysql".format(data.values.image_registry)
+          version: 9.8.1
+          chart_pull_secret_ref:
+            name: chart-pull
+            namespace: default
+          container_pull_secret_ref:
+            name: container-pull
+            namespace: default
+      postgresql:
+        helm_chart:
+          repo: #@ "oci://{}/bitnami/charts/postgresql".format(data.values.image_registry)
+          version: 12.3.1
+          chart_pull_secret_ref:
+            name: chart-pull
+            namespace: default
+          container_pull_secret_ref:
+            name: container-pull
+            namespace: default
+      rabbitmq:
+        helm_chart:
+          repo: #@ "oci://{}/bitnami/charts/rabbitmq".format(data.values.image_registry)
+          version: 11.14.2
+          chart_pull_secret_ref:
+            name: chart-pull
+            namespace: default
+          container_pull_secret_ref:
+            name: container-pull
+            namespace: default
+      redis:
+        helm_chart:
+          repo: #@ "oci://{}/bitnami/charts/redis".format(data.values.image_registry)
+          version: 17.10.0
+          chart_pull_secret_ref:
+            name: chart-pull
+            namespace: default
+          container_pull_secret_ref:
+            name: container-pull
+            namespace: default
     #@ end
 
     policy:

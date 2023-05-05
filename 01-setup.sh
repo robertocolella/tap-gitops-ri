@@ -193,6 +193,8 @@ EOF
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/gitea.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/gitea.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/nexus.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/nexus.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/minio.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/minio.yaml
+  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/crossplane-ca.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/crossplane-ca.yaml
+  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/efk.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/efk.yaml
 
 fi
 cd ./clusters/full-profile

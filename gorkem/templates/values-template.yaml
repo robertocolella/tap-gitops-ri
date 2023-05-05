@@ -2,6 +2,7 @@
 ---
 ingress_domain: tap.corp.com
 image_registry: harbor.tap.corp.com
+tkg_cluster_name: gorkem
 tap_version: 1.5.0
 profile: full # supports only full profile for now
 supply_chain: basic # or testing or testing_scanning
