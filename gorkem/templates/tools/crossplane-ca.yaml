@@ -13,7 +13,7 @@ metadata:
   namespace: default
 ---
 apiVersion: v1
-stringData:
+data:
   .dockerconfigjson: #@ base64.encode(json.encode({"auths":{data.values.image_registry:{"username":data.values.image_registry_user,"password":data.values.image_registry_password,"auth":base64.encode("{}:{}".format(data.values.image_registry_user,data.values.image_registry_password))}}}))
 kind: Secret
 metadata:
