@@ -99,11 +99,12 @@ if [ "$1" = "prep" ]; then
     
     echo "Downloading tool images"
     export tool_images=$(cat ../gorkem/templates/tools/*.yaml|grep "image:"|awk '{ print $2 }')
+    mkdir -p images
     for image in $tool_images
     do
         echo $image
         export tool=$(echo $image | awk -F'/' '{print $(NF)}')
-        imgpkg copy -i $image --to-tar=$tool.tar
+        imgpkg copy -i $image --to-tar=images/$tool.tar
         # do something with the image
     done
 
@@ -180,6 +181,7 @@ elif [ "$1" = "import-packages" ]; then
     curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"${HARBOR_TAP_REPO}\", \"public\": true, \"storage_limit\": -1 }" -k
     curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"tap-packages\", \"public\": true, \"storage_limit\": -1 }" -k
     curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"bitnami\", \"public\": true, \"storage_limit\": -1 }" -k
+    curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"tools\", \"public\": true, \"storage_limit\": -1 }" -k
     #curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X 'POST' "https://nexus-80.$INGRESS_DOMAIN/service/rest/v1/repositories/npm/proxy" -H 'accept: application/json' -H 'Content-Type: application/json' -H 'NX-ANTI-CSRF-TOKEN: 0.11578850459335643' -H 'X-Nexus-UI: true' -d '{"name":"npm","online":true,"storage":{"blobStoreName":"default","strictContentTypeValidation":true,"writePolicy":"ALLOW"},"cleanup":null,"proxy":{"remoteUrl":"https://registry.npmjs.org","contentMaxAge":1440,"metadataMaxAge":1440},"negativeCache":{"enabled":true,"timeToLive":1440},"httpClient":{"blocked":false,"autoBlock":true,"connection":{"retries":null,"userAgentSuffix":null,"timeout":null,"enableCircularRedirects":false,"enableCookies":false,"useTrustStore":false},"authentication":null},"routingRuleName":null,"npm":{"removeNonCataloged":false,"removeQuarantined":false},"format":"npm","type":"proxy"}'
     #curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X 'POST' -H 'accept: application/json' -H 'Content-Type: application/json' -H 'NX-ANTI-CSRF-TOKEN: 0.11578850459335643' -H 'X-Nexus-UI: true' -d '{"userId": "tanzu", "firstName": "tanzu", "lastName": "tanzu", "emailAddress": "tanzu@tanzu.com", "password": "VMware1!", "status": "active", "roles": ["nx-admin"]}' "https://nexus-80.$INGRESS_DOMAIN/service/rest/v1/security/users"
 
@@ -225,13 +227,7 @@ elif [ "$1" = "import-packages" ]; then
         ./install.sh --yes
         cd ../..
     fi
-    
-    
-    mc alias set minio https://$minioURL minio minio123 --insecure
-    mc mb minio/grype --insecure
-    mc cp airgapped-files/vulnerability*.tar.gz minio/grype/databases/ --insecure
-    mc cp airgapped-files/listing.json minio/grype/databases/ --insecure
-    mc anonymous set download minio/grype --insecure
+
     cd airgapped-files/
 cat > 02-bitnami-from-local.yaml <<-EOF
 source:
@@ -252,6 +248,28 @@ target:
 EOF
     charts-syncer sync --config 02-bitnami-from-local.yaml
     cd ..
+
+    export tool_images=$(cat gorkem/templates/tools/*.yaml|grep "image:"|awk '{ print $2 }')
+    echo $tool_images
+    for image in $tool_images
+    do
+        echo $image
+        export tool=$(echo $image | awk -F'/' '{print $(NF)}')
+        imgpkg copy \
+          --tar airgapped-files/images/$tool.tar \
+          --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tools \
+          --include-non-distributable-layers \
+          --registry-ca-cert-path $REGISTRY_CA_PATH
+        sed -i -e "s~$image~$IMGPKG_REGISTRY_HOSTNAME_1\/tools\/tools\/${tool}~g" gorkem/templates/tools/*.yaml
+        rm -f gorkem/templates/tools/*.yaml-e
+    done
+    mc alias set minio https://$minioURL minio minio123 --insecure
+    mc mb minio/grype --insecure
+    mc cp airgapped-files/vulnerability*.tar.gz minio/grype/databases/ --insecure
+    mc cp airgapped-files/listing.json minio/grype/databases/ --insecure
+    mc anonymous set download minio/grype --insecure
+
+
 elif [ "$1" = "gen-cert" ]; then
     mkdir -p cert/
     cd cert
