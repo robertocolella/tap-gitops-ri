@@ -255,9 +255,10 @@ EOF
     do
         echo $image
         export tool=$(echo $image | awk -F'/' '{print $(NF)}')
+        export tool_name=$(echo $tool | cut -d':' -f1)
         imgpkg copy \
           --tar airgapped-files/images/$tool.tar \
-          --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tools/tools \
+          --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tools/tools/$tool_name \
           --include-non-distributable-layers \
           --registry-ca-cert-path $REGISTRY_CA_PATH
         sed -i -e "s~$image~$IMGPKG_REGISTRY_HOSTNAME_1\/tools\/tools\/${tool}~g" gorkem/templates/tools/*.yaml
