@@ -2,15 +2,26 @@
 #@ def in_list(key, list):
 #@  return hasattr(data.values.tap_values, key) and (data.values.tap_values[key] in list)
 #@ end
+#@ def pipelines(key):
+#@  return hasattr(data.values.pipeline, key)
+#@ end
+#@ def pipelines(key):
+#@   for language in data.values.pipeline:
+#@     if language == key:
+#@       return language
+#@     end
+#@   end
+#@ end
 #! This if condition ensures that this Java Tekton pipeline is only created if the supply chain is testing or testing_scanning, and the TAP profile used is full, iterate or build.
-#@ if/end in_list('supply_chain', ['testing', 'testing_scanning']) and in_list('profile', ['full', 'iterate', 'build']):
+#@ if/end in_list('supply_chain', ['testing', 'testing_scanning']) and in_list('profile', ['full', 'iterate', 'build']) and pipelines('java') == "java":
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   labels:
     apps.tanzu.vmware.com/pipeline: test
-  name: developer-defined-tekton-pipeline
+    apps.tanzu.vmware.com/language: java
+  name: test-pipeline-java
 spec:
   params:
   - name: source-url
