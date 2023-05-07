@@ -6,3 +6,8 @@ tbs_full_dependencies:
   pkgr_version: #@ data.values.tbs_version
   pkgr_repo_url: #@ "{}/tap-packages/tbs-full-deps:{}".format(data.values.image_registry,data.values.tbs_version)
 #@ end
+#@ if data.values.acs:
+acs:
+  enabled: true
+  pkgr_version: #@ data.values.acs_version
+#@ end
