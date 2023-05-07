@@ -16,6 +16,8 @@ image_registry_build: tap-15/build
 image_registry_supply_chain: tap-15/supplychain
 acs: true
 acs_version: 2.0.0
+scg: true
+scg_version: 2.0.0-tap.3
 airgapped: true
 git_repo: git.tap.corp.com
 git_user: tanzu

@@ -11,3 +11,8 @@ acs:
   enabled: true
   pkgr_version: #@ data.values.acs_version
 #@ end
+#@ if data.values.scg:
+scg:
+  enabled: true
+  pkgr_version: 2.0.0-tap.3
+#@ end
