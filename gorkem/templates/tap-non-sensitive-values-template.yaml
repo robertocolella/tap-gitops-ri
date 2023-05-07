@@ -89,6 +89,17 @@ tap_install:
           locations:
             - type: url
               target: https://github.com/MoSehsah/bank-demo/blob/main/catalog/catalog-info.yaml
+        auth:
+          allowGuestAccess: true
+          environment: development
+          session:
+            secret: secretvalue
+          providers:
+            oidc:
+              development:
+                clientId: tap-auth
+                clientSecret: secretvalue
+                metadataUrl: #@ "https://dex.{}/.well-known/openid-configuration".format(data.values.ingress_domain)
     
     cnrs:
       domain_template: "{{.Name}}-{{.Namespace}}.{{.Domain}}"
