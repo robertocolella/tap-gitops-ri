@@ -226,7 +226,7 @@ spec:
         - name: dex
           securityContext:
             {}
-          image: "ghcr.io/dexidp/dex:v2.35.3"
+          image: projects.registry.vmware.com/tanzu_meta_pocs/tools/dex:v2.35.3
           imagePullPolicy: IfNotPresent
           args:
             - dex
