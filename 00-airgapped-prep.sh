@@ -98,7 +98,7 @@ if [ "$1" = "prep" ]; then
     sed -i -e "s|toolbox-data.anchore.io|$minioURL|g" listing.json
     
     echo "Downloading tool images"
-    export tool_images=$(cat ../gorkem/templates/tools/*.yaml|grep "image:"|awk '{ print $2 }')
+    export tool_images=$(cat ../gorkem/templates/tools/*.yaml|grep "image: "|awk '{ print $2 }')
     mkdir -p images
     for image in $tool_images
     do
@@ -249,7 +249,7 @@ EOF
     charts-syncer sync --config 02-bitnami-from-local.yaml
     cd ..
 
-    export tool_images=$(cat gorkem/templates/tools/*.yaml|grep "image:"|awk '{ print $2 }')
+    export tool_images=$(cat gorkem/templates/tools/*.yaml|grep "image: "|awk '{ print $2 }')
     echo $tool_images
     for image in $tool_images
     do
