@@ -199,7 +199,7 @@ EOF
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/efk.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/efk.yaml
   cp ./gorkem/templates/tools/openldap.yaml clusters/full-profile/cluster-config/dependant-resources/tools/openldap.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/dex.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/dex.yaml
-
+  cp ./gorkem/templates/overlays/ clusters/full-profile/cluster-config/dependant-resources/overlays
 fi
 cd ./clusters/full-profile
 

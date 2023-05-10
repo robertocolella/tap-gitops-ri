@@ -196,3 +196,8 @@ tap_install:
       - name: workload-git-auth
         namespace: tap-install
         create_export: true
+      #@ if/end data.values.airgapped:
+      overlay_secrets:
+      - name: grype-airgap-overlay-override
+        namespace: tap-install
+        create_export: true
