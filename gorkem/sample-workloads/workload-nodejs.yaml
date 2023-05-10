@@ -8,6 +8,14 @@ metadata:
     apps.tanzu.vmware.com/has-tests: "true"
 spec:
   params:
+  - name: testing_pipeline_matching_labels 
+    value:
+      apps.tanzu.vmware.com/pipeline: test
+      apps.tanzu.vmware.com/language: nodejs
+  - name: scanning_source_policy
+    value: scan-policy-relaxed
+  - name: scanning_image_policy
+    value: scan-policy-relaxed
   - name: buildServiceBindings
     value:
     - kind: Secret
