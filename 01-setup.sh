@@ -196,11 +196,14 @@ EOF
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/nexus.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/nexus.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/minio.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/minio.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/crossplane-ca.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/crossplane-ca.yaml
-  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/efk.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/efk.yaml
-  cp ./gorkem/templates/tools/openldap.yaml clusters/full-profile/cluster-config/dependant-resources/tools/openldap.yaml
-  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/dex.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/dex.yaml
   cp ./gorkem/templates/overlays/ clusters/full-profile/cluster-config/dependant-resources/overlays
+  #cp ./gorkem/templates/tools/external-secrets.yaml clusters/full-profile/cluster-config/dependant-resources/tools/external-secrets.yaml
+  #ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/vault.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/vault.yaml
 fi
+cp ./gorkem/templates/tools/openldap.yaml clusters/full-profile/cluster-config/dependant-resources/tools/openldap.yaml
+ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/dex.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/dex.yaml
+ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/efk.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/efk.yaml
+
 cd ./clusters/full-profile
 
 git add ./cluster-config/ ./tanzu-sync/
