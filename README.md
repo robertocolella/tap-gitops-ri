@@ -38,3 +38,8 @@ Then run the ```01-setup.sh``` for installation
 ```
 $ ./01-setup.sh
 ```
+
+Finally, run the post install command.
+```
+$ ./00-airgapped-prep.sh post-install
+```

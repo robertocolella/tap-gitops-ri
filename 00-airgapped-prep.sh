@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -ne 1 ]; then
-    echo "Usage: $0 prep|import-cli|import-packages|gen-cert"
+    echo "Usage: $0 gen-cert|prep|import-cli|import-packages|post-install"
     exit 1
 fi
 
@@ -182,8 +182,6 @@ elif [ "$1" = "import-packages" ]; then
     curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"tap-packages\", \"public\": true, \"storage_limit\": -1 }" -k
     curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"bitnami\", \"public\": true, \"storage_limit\": -1 }" -k
     curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"tools\", \"public\": true, \"storage_limit\": -1 }" -k
-    #curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X 'POST' "https://nexus-80.$INGRESS_DOMAIN/service/rest/v1/repositories/npm/proxy" -H 'accept: application/json' -H 'Content-Type: application/json' -H 'NX-ANTI-CSRF-TOKEN: 0.11578850459335643' -H 'X-Nexus-UI: true' -d '{"name":"npm","online":true,"storage":{"blobStoreName":"default","strictContentTypeValidation":true,"writePolicy":"ALLOW"},"cleanup":null,"proxy":{"remoteUrl":"https://registry.npmjs.org","contentMaxAge":1440,"metadataMaxAge":1440},"negativeCache":{"enabled":true,"timeToLive":1440},"httpClient":{"blocked":false,"autoBlock":true,"connection":{"retries":null,"userAgentSuffix":null,"timeout":null,"enableCircularRedirects":false,"enableCookies":false,"useTrustStore":false},"authentication":null},"routingRuleName":null,"npm":{"removeNonCataloged":false,"removeQuarantined":false},"format":"npm","type":"proxy"}'
-    #curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X 'POST' -H 'accept: application/json' -H 'Content-Type: application/json' -H 'NX-ANTI-CSRF-TOKEN: 0.11578850459335643' -H 'X-Nexus-UI: true' -d '{"userId": "tanzu", "firstName": "tanzu", "lastName": "tanzu", "emailAddress": "tanzu@tanzu.com", "password": "VMware1!", "status": "active", "roles": ["nx-admin"]}' "https://nexus-80.$INGRESS_DOMAIN/service/rest/v1/security/users"
 
     cp airgapped-files/tanzu-gitops-ri-*.tgz .
     cp airgapped-files/tanzu-cluster-essentials*.tgz gorkem/
@@ -264,12 +262,20 @@ EOF
         sed -i -e "s~$image~$IMGPKG_REGISTRY_HOSTNAME_1\/tools\/tools\/${tool}~g" gorkem/templates/tools/*.yaml
         rm -f gorkem/templates/tools/*.yaml-e
     done
+
+elif [ "$1" = "post-install" ]; then
+
+    export nexus_init_pass=$(kubectl exec -it $(kubectl get pod -n nexus -l app=nexus -o jsonpath='{.items[0].metadata.name}') -n nexus -- cat /nexus-data/admin.password)
+    curl -u "admin:${nexus_init_pass}" -X 'PUT' "https://nexus-80.$INGRESS_DOMAIN/service/rest/v1/security/users/admin/change-password" -H 'accept: application/json' -H 'Content-Type: text/plain' -d ${HARBOR_PASSWORD}
+    curl -u "admin:${HARBOR_PASSWORD}" -X 'PUT' "https://nexus-80.$INGRESS_DOMAIN/service/rest/v1/security/anonymous" -H 'accept: application/json' -H 'Content-Type: text/plain' -d '{"enabled": true, "userId": "anonymous", "realmName": "NexusAuthorizingRealm"}'
+    curl -u "admin:${HARBOR_PASSWORD}" -X 'POST' "https://nexus-80.$INGRESS_DOMAIN/service/rest/v1/repositories/npm/proxy" -H 'accept: application/json' -H 'Content-Type: application/json' -d '{"name": "npm","online": true,"storage": {"blobStoreName": "default","strictContentTypeValidation": true,"writePolicy": "ALLOW"},"cleanup": null,"proxy": {"remoteUrl": "https://registry.npmjs.org","contentMaxAge": 1440,"metadataMaxAge": 1440},"negativeCache": {"enabled": true,"timeToLive": 1440},"httpClient": {"blocked": false,"autoBlock": true,"connection": {"retries": null,"userAgentSuffix": null,"timeout": null,"enableCircularRedirects": false,"enableCookies": false,"useTrustStore": false},"authentication": null},"routingRuleName": null,"npm": {"removeNonCataloged": false,"removeQuarantined": false},"format": "npm","type": "proxy"}'
+    curl -u "admin:${HARBOR_PASSWORD}" -X 'POST' "https://nexus-80.$INGRESS_DOMAIN/service/rest/v1/security/users" -H 'accept: application/json' -H 'Content-Type: application/json' -d '{"userId": "tanzu","firstName": "tanzu","lastName": "tanzu","emailAddress": "tanzu@vmware.com","password": "VMware1!","status": "active","roles": ["nx-admin"]}'
+
     mc alias set minio https://$minioURL minio minio123 --insecure
     mc mb minio/grype --insecure
     mc cp airgapped-files/vulnerability*.tar.gz minio/grype/databases/ --insecure
     mc cp airgapped-files/listing.json minio/grype/databases/ --insecure
     mc anonymous set download minio/grype --insecure
-
 
 elif [ "$1" = "gen-cert" ]; then
     mkdir -p cert/
