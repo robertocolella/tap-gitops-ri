@@ -8,3 +8,4 @@ gorkem/ca.crt
 *.tgz
 *.tar
 airgapped-files/*
+cert/*
