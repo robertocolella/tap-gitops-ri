@@ -2,7 +2,7 @@
 
 ## Getting Started Quick
 
-Fork the repo and update the ```01-setup.sh``` on Line 155 with your repo.
+Fork the repo and update the ```01-setup.sh``` on Line 171 with your repo.
 
 Create the ```values.yaml``` from the ```values-template.yaml``` file.
 
