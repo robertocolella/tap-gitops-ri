@@ -1,5 +1,21 @@
 #!/bin/bash
 
+# Get the Kubernetes server version
+SERVER_VERSION=$(kubectl version --short | awk -Fv '/Server Version: /{print substr($3,0,4)}')
+
+#check if kubernetes version is retrieved.
+if [ -z "$SERVER_VERSION" ]; then
+  echo "Error: Failed to retrieve Kubernetes server version"
+  exit 1
+fi
+
+# Check if the server version is less than 1.24
+if (( $(echo "$SERVER_VERSION < 1.24" | bc -l) )); then
+  echo "Kubernetes server version is less than 1.24"
+  echo "For TAP1.5, you must have minimum k8s 1.24"
+  exit 1
+fi
+
 # age
 if ! command -v age >/dev/null 2>&1 ; then
   echo "age not installed. Use below to install"
