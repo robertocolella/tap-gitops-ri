@@ -31247,5 +31247,6 @@ spec:
                 path: my-cert.pem
               name: ca-bundle-config
             name: ca-cert
+    #@yaml/map-key-override
     name: add-ca-cert
   validationFailureAction: Audit
