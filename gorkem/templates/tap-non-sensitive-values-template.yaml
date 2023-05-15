@@ -116,7 +116,6 @@ tap_install:
         url: ""
     
     grype:
-      namespace: "my-apps"
       targetImagePullSecret: "scanner-secret-ref"
       #@ if data.values.airgapped:
       db:
