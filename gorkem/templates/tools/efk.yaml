@@ -119,7 +119,7 @@ metadata:
   labels:
     app: kibana
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
   - port: 5601
   selector:

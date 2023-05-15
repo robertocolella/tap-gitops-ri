@@ -176,7 +176,7 @@ spec:
   selector:
     app: openldap
     release: openldap
-  type: LoadBalancer
+  type: ClusterIP
 ---
 # Source: openldap/templates/deployment.yaml
 apiVersion: apps/v1
