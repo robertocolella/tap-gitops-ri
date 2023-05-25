@@ -89,6 +89,10 @@ tap_install:
           locations:
             - type: url
               target: https://github.com/MoSehsah/bank-demo/blob/main/catalog/catalog-info.yaml
+        backend:
+          reading:
+            allow:
+              - host: #@ data.values.git_repo
         auth:
           allowGuestAccess: true
           environment: development
