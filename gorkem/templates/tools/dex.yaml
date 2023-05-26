@@ -67,12 +67,6 @@ stringData:
       - '(@= "https://tap-gui.{}/api/auth/oidc/handler/frame".format(data.values.ingress_domain) @)'
       name: 'tap-auth'
       secret: secretvalue
-    staticPasswords:
-    - email: admin@example.com
-      hash: $2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W
-      userID: 08a8684b-db88-4b73-90a9-3cd1661f5466
-      username: admin
-    enablePasswordDB: true
     oauth2:
       skipApprovalScreen: true
     storage:
@@ -102,8 +96,8 @@ stringData:
           baseDN: dc=pinniped,dc=dev
           filter: (objectClass=groupOfUniqueNames)
           userMatchers:
-          - userAttr: cn
-            groupAttr: cn
+          - userAttr: DN
+            groupAttr: uniqueMember
           nameAttr: cn
 ---
 apiVersion: rbac.authorization.k8s.io/v1
