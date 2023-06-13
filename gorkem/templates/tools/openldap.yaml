@@ -1,5 +1,6 @@
 # ldapsearch -x -H ldap://10.220.38.71:389 -b dc=pinniped,dc=dev -D "cn=admin,dc=pinniped,dc=dev" -w password
 # ldapadd -x -H ldap://10.220.38.71:389 -W -D "cn=admin,dc=pinniped,dc=dev" -f 1.ldif
+# user: tanzu pass: VMware1!
 
 apiVersion: v1
 kind: Namespace
@@ -87,7 +88,7 @@ data:
     cn: tanzu
     sn: tanzu
     uid: tanzu
-    userPassword: {SSHA}KmyLFAr0F0bydKMG3H7RsUNZTzAtq6hJ
+    userPassword: {SSHA}mBj6frepLy1wj7uG/XnBuyRMqYNEZt3+
 
     dn: cn=tmc:admin,ou=Group,dc=pinniped,dc=dev
     objectclass: groupOfUniqueNames
