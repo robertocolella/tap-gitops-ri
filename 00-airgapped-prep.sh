@@ -214,13 +214,15 @@ elif [ "$1" = "import-packages" ]; then
            --from-file caCerts=gorkem/ca.crt
         imgpkg copy \
           --tar airgapped-files/cluster-essentials-bundle-1.5.0.tar \
-          --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/cluster-essentials-bundle \
+          --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/tanzu-cluster-essentials/cluster-essentials-bundle \
           --include-non-distributable-layers \
           --registry-ca-cert-path $REGISTRY_CA_PATH
         export INSTALL_BUNDLE=$IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:79abddbc3b49b44fc368fede0dab93c266ff7c1fe305e2d555ed52d00361b446
-        export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
-        export INSTALL_REGISTRY_USERNAME=$(yq eval '.tanzuNet_username' gorkem/values.yaml)
-        export INSTALL_REGISTRY_PASSWORD=$(yq eval '.tanzuNet_password' gorkem/values.yaml)
+        export INSTALL_REGISTRY_HOSTNAME=$(yq eval '.image_registry_tap' ./gorkem/values.yaml)
+        export INSTALL_REGISTRY_USERNAME=$(yq eval '.image_registry_user' ./gorkem/values.yaml)
+        export INSTALL_REGISTRY_PASSWORD=$(yq eval '.image_registry_password' ./gorkem/values.yaml)
+        mkdir -p gorkem/tanzu-cluster-essentials
+        tar -xvf gorkem/tanzu-cluster-essentials-*.tgz -C gorkem/tanzu-cluster-essentials
         cd gorkem/tanzu-cluster-essentials
         ./install.sh --yes
         cd ../..
