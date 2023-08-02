@@ -162,7 +162,7 @@ ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tap-
 export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
 export INSTALL_REGISTRY_USERNAME=$(yq eval '.tanzuNet_username' ./gorkem/values.yaml)
 export INSTALL_REGISTRY_PASSWORD=$(yq eval '.tanzuNet_password' ./gorkem/values.yaml)
-export GIT_SSH_PRIVATE_KEY=$(cat $HOME/.ssh/id_rsa)
+export GIT_SSH_PRIVATE_KEY=$(cat $HOME/.ssh/id_rsa &>/dev/null || ssh-keygen -b 2048 -t rsa -f /$HOME/.ssh/id_rsa -q -N "" && cat $HOME/.ssh/id_rsa)
 export GIT_KNOWN_HOSTS=$(ssh-keyscan github.com)
 export SOPS_AGE_KEY=$(cat ./gorkem/tmp-enc/key.txt)
 
