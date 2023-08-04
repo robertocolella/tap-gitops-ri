@@ -117,8 +117,11 @@ if [ "$1" = "prep" ]; then
 cat > 01-bitnami-to-local.yaml <<-EOF
 source:
   repo:
-    kind: HELM
-    url: https://charts.app-catalog.vmware.com/demo
+    kind: OCI
+    url: https://harbor.mgt.mytanzu.org/vac/charts/ubuntu-20
+    auth:
+      username: change-me
+      password: change-me
 target:
   intermediateBundlesPath: bitnami-local
 charts:
@@ -126,6 +129,8 @@ charts:
 - mysql
 - rabbitmq
 - postgresql
+- kafka
+- mongodb
 EOF
     charts-syncer sync --config 01-bitnami-to-local.yaml --latest-version-only
     
