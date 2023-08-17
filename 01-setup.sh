@@ -222,10 +222,13 @@ cp ./gorkem/templates/tools/openldap.yaml clusters/full-profile/cluster-config/d
 ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/dex.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/dex.yaml
 ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/efk.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/efk.yaml
 
+export TAP_VERSION_ORG="1.6.1"
+grep -iRl "$TAP_VERSION_ORG" . | xargs perl -pi -e "s/$TAP_VERSION_ORG/$TAP_VERSION/g"
+
 cd ./clusters/full-profile
 
 git add ./cluster-config/ ./tanzu-sync/
-git commit -m "Configure install of TAP 1.6.2"
+git commit -m "Configure install of TAP $TAP_VERSION"
 git push
 
 ./tanzu-sync/scripts/deploy.sh
