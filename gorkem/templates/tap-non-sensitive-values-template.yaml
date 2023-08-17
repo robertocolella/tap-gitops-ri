@@ -168,7 +168,7 @@ tap_install:
       rabbitmq:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 12.0.0
+          version: 12.0.1
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
