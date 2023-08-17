@@ -210,7 +210,7 @@ EOF
   ytt --ignore-unknown-comments --data-value git_push_repo=$remote_url_ -f gorkem/templates/dependant-resources-app.yaml > clusters/full-profile/cluster-config/config/dependant-resources-app.yaml
   
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/local-issuer.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/local-issuer.yaml
-  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/git.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/gitea.yaml
+  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/git.yml > clusters/full-profile/cluster-config/dependant-resources/tools/gitea.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/nexus.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/nexus.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/minio.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/minio.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/crossplane-ca.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/crossplane-ca.yaml

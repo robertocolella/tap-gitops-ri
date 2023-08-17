@@ -122,23 +122,23 @@ if [ "$1" = "prep" ]; then
     done
     imgpkg copy -b projects.registry.vmware.com/tanzu_meta_pocs/tools/gitea:1.15.3_2 --to-tar=images/gitea-bundle.tar
     imgpkg copy -i projects.registry.vmware.com/tanzu_meta_pocs/tools/gradle:latest --to-tar=images/gradle.tar
-    cd airgapped-files/git-repos/
+    cd git-repos/
     git clone https://github.com/gorkemozlu/weatherforecast-steeltoe-net-tap && rm -rf weatherforecast-steeltoe-net-tap/.git
     git clone https://github.com/gorkemozlu/tanzu-java-web-app && rm -rf tanzu-java-web-app/.git
     git clone https://github.com/gorkemozlu/node-express && rm -rf node-express/.git
     git clone https://github.com/MoSehsah/bank-demo && rm -rf bank-demo/.git
-    cd ../..
+    cd ..
 
     export configserver="projects.registry.vmware.com/tanzu_meta_pocs/banking-demo/configserver:latest"
     export jaeger="projects.registry.vmware.com/tanzu_meta_pocs/banking-demo/jaegertracing/all-in-one:1.42.0"
     export otel="projects.registry.vmware.com/tanzu_meta_pocs/banking-demo/opentelemetry-operator:0.74.0"
     export rbac="projects.registry.vmware.com/tanzu_meta_pocs/banking-demo/kube-rbac-proxy:v0.13.0"
     export wfoperator="projects.registry.vmware.com/tanzu_observability/kubernetes-operator:2.2.0"
-    imgpkg copy -i $configserver --to-tar=airgapped-files/images/configserver.tar
-    imgpkg copy -i $jaeger --to-tar=airgapped-files/images/jaeger.tar
-    imgpkg copy -i $otel --to-tar=airgapped-files/images/otel.tar
-    imgpkg copy -i $rbac --to-tar=airgapped-files/images/rbac.tar
-    imgpkg copy -i $wfoperator --to-tar=airgapped-files/images/wfoperator.tar
+    imgpkg copy -i $configserver --to-tar=images/configserver.tar
+    imgpkg copy -i $jaeger --to-tar=images/jaeger.tar
+    imgpkg copy -i $otel --to-tar=images/otel.tar
+    imgpkg copy -i $rbac --to-tar=images/rbac.tar
+    imgpkg copy -i $wfoperator --to-tar=images/wfoperator.tar
 
     echo "Downloading Bitnami Catalog"
 cat > 01-bitnami-to-local.yaml <<-EOF
@@ -324,7 +324,7 @@ EOF
     imgpkg copy --tar airgapped-files/images/gitea-bundle.tar --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tools/tools/gitea --include-non-distributable-layers --registry-ca-cert-path $REGISTRY_CA_PATH
     export gitea_image="projects.registry.vmware.com/tanzu_meta_pocs/tools/gitea:1.15.3_2"
     export gitea_image_harbor="$IMGPKG_REGISTRY_HOSTNAME_1/tools/tools/gitea:1.15.3_2"
-    sed -i -e "s~$gitea_image~$gitea_image_harbor~g" gorkem/templates/tools/git.yaml
+    sed -i -e "s~$gitea_image~$gitea_image_harbor~g" gorkem/templates/tools/git.yml
 
     imgpkg copy --tar airgapped-files/images/gradle.tar --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tools/tools/gradle --include-non-distributable-layers --registry-ca-cert-path $REGISTRY_CA_PATH
     export gradle_image="projects.registry.vmware.com/tanzu_meta_pocs/tools/gradle:latest"
