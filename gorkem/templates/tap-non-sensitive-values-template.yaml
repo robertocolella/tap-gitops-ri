@@ -148,7 +148,7 @@ tap_install:
       mysql:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 9.10.0
+          version: 9.11.0
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
@@ -178,7 +178,7 @@ tap_install:
       redis:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 17.15.0
+          version: 17.15.1
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
