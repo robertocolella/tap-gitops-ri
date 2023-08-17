@@ -14,5 +14,5 @@ acs:
 #@ if data.values.scg:
 scg:
   enabled: true
-  pkgr_version: 2.0.0-tap.3
+  pkgr_version: #@ data.values.scg_version
 #@ end

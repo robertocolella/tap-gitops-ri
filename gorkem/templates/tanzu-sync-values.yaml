@@ -1,0 +1,19 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:base64", "base64")
+---
+secrets:
+    sops:
+        age_key: #@ data.values.age_key
+        registry:
+            hostname: #@ data.values.image_registry
+            username: #@ data.values.image_registry_user
+            password: #@ data.values.image_registry_password
+        git:
+            #@ if/end data.values.git.push_repo.auth.basic_auth.enabled == True:
+            basic_auth:
+                username: #@ data.values.git.push_repo.auth.basic_auth.username
+                password: #@ data.values.git.push_repo.auth.basic_auth.password
+            #@ if/end data.values.git.push_repo.auth.ssh.enabled == True:
+            ssh:
+                private_key: #@ data.values.git.push_repo.auth.ssh.private_key
+                known_hosts: #@ data.values.git.push_repo.auth.ssh.known_hosts

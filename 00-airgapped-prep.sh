@@ -35,6 +35,8 @@ if [ "$1" = "prep" ]; then
     echo "start prepping files...."
 
     mkdir -p airgapped-files/
+    mkdir -p airgapped-files/git-repos/
+    mkdir -p airgapped-files/images
     cd airgapped-files/
     
     echo "Downloading age"
@@ -55,12 +57,23 @@ if [ "$1" = "prep" ]; then
     uname -s| grep Linux && wget -q https://dl.min.io/client/mc/release/linux-amd64/mc && chmod +x mc && cp mc /usr/local/bin/mc
     uname -s| grep Darwin && brew install minio/stable/mc
     
-    echo "Downloading GitOps Ref. Implementation"
-    pivnet download-product-files --product-slug='tanzu-application-platform' --release-version='1.5.0' --product-file-id=1467377
+    echo "Downloading tanzu CLI"
+    uname -s| grep Linux && wget -q https://github.com/vmware-tanzu/tanzu-cli/releases/download/v1.0.0/tanzu-cli-linux-amd64.tar.gz && tar -xvf tanzu-cli-linux-amd64.tar.gz && install v1.0.0/tanzu-cli-linux_amd64 /usr/local/bin/tanzu
+    wget -q https://github.com/vmware-tanzu/tanzu-cli/releases/download/v1.0.0/tanzu-cli-darwin-amd64.tar.gz
+    wget -q https://github.com/vmware-tanzu/tanzu-cli/releases/download/v1.0.0/tanzu-cli-windows-amd64.zip
+    tanzu plugin download-bundle --group vmware-tap/default:v1.6.2 --to-tar tanzu-cli-tap-162.tar.gz
+
+    echo "Downloading Tilt CLI"
+    wget -q https://github.com/tilt-dev/tilt/releases/download/v0.33.4/tilt.0.33.4.mac.x86_64.tar.gz
+    wget -q https://github.com/tilt-dev/tilt/releases/download/v0.33.4/tilt.0.33.4.linux.x86_64.tar.gz
+    wget -q https://github.com/tilt-dev/tilt/releases/download/v0.33.4/tilt.0.33.4.windows.x86_64.zip
     
+    echo "Downloading GitOps Ref. Implementation"
+    pivnet download-product-files --product-slug='tanzu-application-platform' --release-version='1.6.2' --product-file-id=1565341
+
     echo "Downloading Cluster-Essentials"
-    uname -s| grep Darwin && pivnet download-product-files --product-slug='tanzu-cluster-essentials' --release-version='1.5.0' --product-file-id=1460874
-    uname -s| grep Linux && pivnet download-product-files --product-slug='tanzu-cluster-essentials' --release-version='1.5.0' --product-file-id=1460876
+    uname -s| grep Darwin && pivnet download-product-files --product-slug='tanzu-cluster-essentials' --release-version='1.6.0' --product-file-id=1526700
+    uname -s| grep Linux && pivnet download-product-files --product-slug='tanzu-cluster-essentials' --release-version='1.6.0' --product-file-id=1526701
     
     # imgpkg binary check
     if ! command -v imgpkg >/dev/null 2>&1 ; then
@@ -82,8 +95,8 @@ if [ "$1" = "prep" ]; then
     
     echo "Downloading Cluster Essentials"
     imgpkg copy \
-      -b registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:79abddbc3b49b44fc368fede0dab93c266ff7c1fe305e2d555ed52d00361b446 \
-      --to-tar cluster-essentials-bundle-1.5.0.tar \
+      -b registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:54e516b5d088198558d23cababb3f907cd8073892cacfb2496bb9d66886efe15 \
+      --to-tar cluster-essentials-bundle-1.6.0.tar \
       --include-non-distributable-layers
     
     echo "Downloading Grype Vulnerability Definitions"
@@ -107,12 +120,26 @@ if [ "$1" = "prep" ]; then
         imgpkg copy -i $image --to-tar=images/$tool.tar
         # do something with the image
     done
-
+    imgpkg copy -b projects.registry.vmware.com/tanzu_meta_pocs/tools/gitea:1.15.3_2 --to-tar=images/gitea-bundle.tar
+    imgpkg copy -i projects.registry.vmware.com/tanzu_meta_pocs/tools/gradle:latest --to-tar=images/gradle.tar
+    cd airgapped-files/git-repos/
     git clone https://github.com/gorkemozlu/weatherforecast-steeltoe-net-tap && rm -rf weatherforecast-steeltoe-net-tap/.git
     git clone https://github.com/gorkemozlu/tanzu-java-web-app && rm -rf tanzu-java-web-app/.git
     git clone https://github.com/gorkemozlu/node-express && rm -rf node-express/.git
     git clone https://github.com/MoSehsah/bank-demo && rm -rf bank-demo/.git
-    
+    cd ../..
+
+    export configserver="projects.registry.vmware.com/tanzu_meta_pocs/banking-demo/configserver:latest"
+    export jaeger="projects.registry.vmware.com/tanzu_meta_pocs/banking-demo/jaegertracing/all-in-one:1.42.0"
+    export otel="projects.registry.vmware.com/tanzu_meta_pocs/banking-demo/opentelemetry-operator:0.74.0"
+    export rbac="projects.registry.vmware.com/tanzu_meta_pocs/banking-demo/kube-rbac-proxy:v0.13.0"
+    export wfoperator="projects.registry.vmware.com/tanzu_observability/kubernetes-operator:2.2.0"
+    imgpkg copy -i $configserver --to-tar=airgapped-files/images/configserver.tar
+    imgpkg copy -i $jaeger --to-tar=airgapped-files/images/jaeger.tar
+    imgpkg copy -i $otel --to-tar=airgapped-files/images/otel.tar
+    imgpkg copy -i $rbac --to-tar=airgapped-files/images/rbac.tar
+    imgpkg copy -i $wfoperator --to-tar=airgapped-files/images/wfoperator.tar
+
     echo "Downloading Bitnami Catalog"
 cat > 01-bitnami-to-local.yaml <<-EOF
 source:
@@ -177,7 +204,18 @@ elif [ "$1" = "import-cli" ]; then
       echo "installing mc"
       cp mc /usr/local/bin/mc
     fi
-    
+
+    # tilt
+    if ! command -v tilt >/dev/null 2>&1 ; then
+      echo "installing tilt"
+      tar -xvf tilt.0.33.4.linux.x86_64.tar.gz
+      cp tilt /usr/local/bin/tilt
+    fi
+
+    echo "installing tanzu cli"
+    tar -xvf tanzu-cli-linux-amd64.tar.gz
+    install v1.0.0/tanzu-cli-linux_amd64 /usr/local/bin/tanzu
+
     cd ..
 
 elif [ "$1" = "import-packages" ]; then
@@ -187,6 +225,13 @@ elif [ "$1" = "import-packages" ]; then
     curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"tap-packages\", \"public\": true, \"storage_limit\": -1 }" -k
     curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"bitnami\", \"public\": true, \"storage_limit\": -1 }" -k
     curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"tools\", \"public\": true, \"storage_limit\": -1 }" -k
+    curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects" -d "{\"project_name\": \"tap-lsp\", \"public\": true, \"storage_limit\": -1 }" -k
+    curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/users" -d '{"comment": "push-user", "username": "push-user", "password": "VMware1!", "email": "push-user@vmware.com", "realname": "push-user"}' -k
+    curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/users" -d '{"comment": "pull-user", "username": "pull-user", "password": "VMware1!", "email": "pull-user@vmware.com", "realname": "pull-user"}' -k
+    export push_user_id=$(curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X GET -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/users/search?page=1&page_size=10&username=push-user" -k |jq '.[].user_id')
+    export pull_user_id=$(curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X GET -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/users/search?page=1&page_size=10&username=pull-user" -k |jq '.[].user_id')
+    curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects/tap-lsp/members" -d "{\"role_id\": 2, \"member_user\": { \"username\": \"push-user\", \"user_id\": ${push_user_id} }}" -k
+    curl -u "${HARBOR_USERNAME}:${HARBOR_PASSWORD}" -X POST -H "content-type: application/json" "https://${HARBOR_URL}/api/v2.0/projects/tap-lsp/members" -d "{\"role_id\": 3, \"member_user\": { \"username\": \"pull-user\", \"user_id\": ${pull_user_id} }}" -k
 
     cp airgapped-files/tanzu-gitops-ri-*.tgz .
     cp airgapped-files/tanzu-cluster-essentials*.tgz gorkem/
@@ -218,11 +263,11 @@ elif [ "$1" = "import-packages" ]; then
            --namespace kapp-controller \
            --from-file caCerts=gorkem/ca.crt
         imgpkg copy \
-          --tar airgapped-files/cluster-essentials-bundle-1.5.0.tar \
+          --tar airgapped-files/cluster-essentials-bundle-1.6.0.tar \
           --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/tanzu-cluster-essentials/cluster-essentials-bundle \
           --include-non-distributable-layers \
           --registry-ca-cert-path $REGISTRY_CA_PATH
-        export INSTALL_BUNDLE=$IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:79abddbc3b49b44fc368fede0dab93c266ff7c1fe305e2d555ed52d00361b446
+        export INSTALL_BUNDLE=$IMGPKG_REGISTRY_HOSTNAME_1/tap-packages/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:54e516b5d088198558d23cababb3f907cd8073892cacfb2496bb9d66886efe15
         export INSTALL_REGISTRY_HOSTNAME=$(yq eval '.image_registry_tap' ./gorkem/values.yaml)
         export INSTALL_REGISTRY_USERNAME=$(yq eval '.image_registry_user' ./gorkem/values.yaml)
         export INSTALL_REGISTRY_PASSWORD=$(yq eval '.image_registry_password' ./gorkem/values.yaml)
@@ -270,6 +315,30 @@ EOF
         rm -f gorkem/templates/tools/*.yaml-e
     done
 
+    imgpkg copy --tar airgapped-files/images/configserver.tar --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tap-16/banking-demo/configserver --include-non-distributable-layers --registry-ca-cert-path $REGISTRY_CA_PATH
+    imgpkg copy --tar airgapped-files/images/jaeger.tar --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tap-16/banking-demo/jaeger --include-non-distributable-layers --registry-ca-cert-path $REGISTRY_CA_PATH
+    imgpkg copy --tar airgapped-files/images/otel.tar --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tap-16/banking-demo/otel --include-non-distributable-layers --registry-ca-cert-path $REGISTRY_CA_PATH
+    imgpkg copy --tar airgapped-files/images/rbac.tar --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tap-16/banking-demo/kube-rbac-proxy --include-non-distributable-layers --registry-ca-cert-path $REGISTRY_CA_PATH
+    imgpkg copy --tar airgapped-files/images/wfoperator.tar --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tap-16/banking-demo/wfoperator --include-non-distributable-layers --registry-ca-cert-path $REGISTRY_CA_PATH
+
+    imgpkg copy --tar airgapped-files/images/gitea-bundle.tar --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tools/tools/gitea --include-non-distributable-layers --registry-ca-cert-path $REGISTRY_CA_PATH
+    export gitea_image="projects.registry.vmware.com/tanzu_meta_pocs/tools/gitea:1.15.3_2"
+    export gitea_image_harbor="$IMGPKG_REGISTRY_HOSTNAME_1/tools/tools/gitea:1.15.3_2"
+    sed -i -e "s~$gitea_image~$gitea_image_harbor~g" gorkem/templates/tools/git.yaml
+
+    imgpkg copy --tar airgapped-files/images/gradle.tar --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tools/tools/gradle --include-non-distributable-layers --registry-ca-cert-path $REGISTRY_CA_PATH
+    export gradle_image="projects.registry.vmware.com/tanzu_meta_pocs/tools/gradle:latest"
+    export gradle_image_harbor="$IMGPKG_REGISTRY_HOSTNAME_1/tools/tools/gradle:latest"
+    sed -i -e "s~$gradle_image~$gradle_image_harbor~g" gorkem/namespace-provisioner/resources/test-pipeline-java.yaml
+    sed -i -e "s~$gradle_image~$gradle_image_harbor~g" gorkem/namespace-provisioner/resources/test-pipeline-dotnet.yaml
+    sed -i -e "s~$gradle_image~$gradle_image_harbor~g" gorkem/namespace-provisioner/resources/test-pipeline-nodejs.yaml
+
+    tanzu config cert add --host $IMGPKG_REGISTRY_HOSTNAME_1 --skip-cert-verify true
+    docker login $IMGPKG_REGISTRY_HOSTNAME_1 --username $HARBOR_USERNAME --password $HARBOR_PASSWORD
+    tanzu plugin upload-bundle --tar airgapped-files/tanzu-cli-tap-162.tar.gz --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tools/tanzu-cli/plugin
+    tanzu plugin source update default --uri $IMGPKG_REGISTRY_HOSTNAME_1/tools/tanzu-cli/plugin/plugin-inventory:latest
+    tanzu plugin install --group vmware-tap/default:v1.6.2
+
 elif [ "$1" = "post-install" ]; then
 
     export nexus_init_pass=$(kubectl exec -it $(kubectl get pod -n nexus -l app=nexus -o jsonpath='{.items[0].metadata.name}') -n nexus -- cat /nexus-data/admin.password)
@@ -283,6 +352,59 @@ elif [ "$1" = "post-install" ]; then
     mc cp airgapped-files/vulnerability*.tar.gz minio/grype/databases/ --insecure
     mc cp airgapped-files/listing.json minio/grype/databases/ --insecure
     mc anonymous set download minio/grype --insecure
+
+    export gitea_user=$(yq eval '.git.gitea.git_user' ./gorkem/values.yaml)
+    export gitea_pass=$(yq eval '.git.gitea.git_password' ./gorkem/values.yaml)
+    export git_repo=$(yq eval '.git.gitea.git_repo' ./gorkem/values.yaml)
+    export gitea_token=$(curl -X POST "https://$gitea_user:$gitea_pass@git.$git_repo/api/v1/users/tanzu/tokens" -H  "accept: application/json" -H "Content-Type: application/json" -d "{\"name\": \"token_name\"}" -k|jq -r .sha1)
+    git config --global user.email "$gitea_user@vmware.com"
+    git config --global user.name $gitea_user
+    cd airgapped-files/git-repos/
+    cd bank-demo
+    curl -k -X POST "https://git.$git_repo/api/v1/user/repos" -H "content-type: application/json" -H "Authorization: token $gitea_token" --data '{"name":"bank-demo","default_branch":"main"}' -k
+    git init
+    git checkout -b main
+    git add .
+    git commit -m "big bang"
+    git remote add origin https://git.$git_repo/tanzu/bank-demo.git
+    git config http.sslVerify "false"
+    echo "git user: $gitea_user / pass: $gitea_pass"
+    git push -u origin main
+    cd ..
+    cd node-express
+    curl -k -X POST "https://git.$git_repo/api/v1/user/repos" -H "content-type: application/json" -H "Authorization: token $gitea_token" --data '{"name":"node-express","default_branch":"main"}' -k
+    git init
+    git checkout -b main
+    git add .
+    git commit -m "big bang"
+    git remote add origin https://git.$git_repo/tanzu/node-express.git
+    git config http.sslVerify "false"
+    echo "git user: $gitea_user / pass: $gitea_pass"
+    git push -u origin main
+    cd ..
+    cd tanzu-java-web-app
+    curl -k -X POST "https://git.$git_repo/api/v1/user/repos" -H "content-type: application/json" -H "Authorization: token $gitea_token" --data '{"name":"java-web-app","default_branch":"main"}' -k
+    git init
+    git checkout -b main
+    git add .
+    git commit -m "big bang"
+    git remote add origin https://git.$git_repo/tanzu/java-web-app.git
+    git config http.sslVerify "false"
+    echo "git user: $gitea_user / pass: $gitea_pass"
+    git push -u origin main
+    cd ..
+    cd weatherforecast-steeltoe-net-tap
+    curl -k -X POST "https://git.$git_repo/api/v1/user/repos" -H "content-type: application/json" -H "Authorization: token $gitea_token" --data '{"name":"steeltoe-net","default_branch":"main"}' -k
+    git init
+    git checkout -b main
+    git add .
+    git commit -m "big bang"
+    git remote add origin https://git.$git_repo/tanzu/steeltoe-net.git
+    git config http.sslVerify "false"
+    echo "git user: $gitea_user / pass: $gitea_pass"
+    git push -u origin main
+    cd ..
+    cd ../..
 
 elif [ "$1" = "gen-cert" ]; then
     mkdir -p cert/

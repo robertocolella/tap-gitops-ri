@@ -10,9 +10,9 @@ if [ -z "$SERVER_VERSION" ]; then
 fi
 
 # Check if the server version is less than 1.24
-if (( $(echo "$SERVER_VERSION < 1.24" | bc -l) )); then
-  echo "Kubernetes server version is less than 1.24"
-  echo "For TAP1.5, you must have minimum k8s 1.24"
+if (( $(echo "$SERVER_VERSION < 1.25" | bc -l) )); then
+  echo "Kubernetes server version is less than 1.25"
+  echo "For TAP1.6, you must have minimum k8s 1.25"
   exit 1
 fi
 
@@ -105,7 +105,7 @@ if [ -n "$KAPP_NS" ]; then
     echo "kapp is running"
 else
     echo "kapp is not running, therefore installing."
-    export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:79abddbc3b49b44fc368fede0dab93c266ff7c1fe305e2d555ed52d00361b446
+    export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:54e516b5d088198558d23cababb3f907cd8073892cacfb2496bb9d66886efe15
     export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
     export INSTALL_REGISTRY_USERNAME=$(yq eval '.tanzuNet_username' gorkem/values.yaml)
     export INSTALL_REGISTRY_PASSWORD=$(yq eval '.tanzuNet_password' gorkem/values.yaml)
@@ -131,21 +131,28 @@ export SOPS_AGE_RECIPIENTS=$(cat ./gorkem/tmp-enc/key.txt | grep "# public key: 
 export HARBOR_USERNAME=$(yq eval '.image_registry_user' ./gorkem/values.yaml)
 export HARBOR_PASSWORD=$(yq eval '.image_registry_password' ./gorkem/values.yaml)
 export HARBOR_URL=$(yq eval '.image_registry' ./gorkem/values.yaml)
+export TAP_VERSION=$(yq eval '.tap_version' ./gorkem/values.yaml)
 
-cat > ./gorkem/tmp-enc/tap-sensitive-values.yaml <<-EOF
----
-tap_install:
-  sensitive_values:
-    shared:
-      image_registry:
-        username: $HARBOR_USERNAME
-        password: $HARBOR_PASSWORD
-    buildservice:
-      kp_default_repository_password: $HARBOR_PASSWORD
-EOF
+export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
+export INSTALL_REGISTRY_USERNAME=$(yq eval '.tanzuNet_username' ./gorkem/values.yaml)
+export INSTALL_REGISTRY_PASSWORD=$(yq eval '.tanzuNet_password' ./gorkem/values.yaml)
+export GIT_SSH_PRIVATE_KEY=$(cat $HOME/.ssh/id_rsa &>/dev/null || ssh-keygen -b 2048 -t rsa -f /$HOME/.ssh/id_rsa -q -N "" && cat $HOME/.ssh/id_rsa)
+export GIT_KNOWN_HOSTS=$(ssh-keyscan github.com)
+export SOPS_AGE_KEY=$(cat ./gorkem/tmp-enc/key.txt)
+export SOPS_AGE_SECRET_KEY=$(cat ./gorkem/tmp-enc/key.txt|grep AGE-SECRET-KEY)
+export GIT_USER=$(yq eval '.git.gitea.git_user' gorkem/values.yaml)
+export GIT_PASS=$(yq eval '.git.gitea.git_password' gorkem/values.yaml)
+export GIT_REPO=$(yq eval '.git.push_repo.fqdn' gorkem/values.yaml)
 
+ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tap-sensitive-values.yaml > ./gorkem/tmp-enc/tap-sensitive-values.yaml
+ytt --ignore-unknown-comments -f ./gorkem/values.yaml --data-value age_key=$SOPS_AGE_SECRET_KEY -f ./gorkem/templates/tanzu-sync-values.yaml > ./gorkem/tmp-enc/tanzu-sync-values.yaml
+
+export SOPS_AGE_RECIPIENTS=$(cat ./gorkem/tmp-enc/key.txt | grep "# public key: " | sed 's/# public key: //')
 sops --encrypt ./gorkem/tmp-enc/tap-sensitive-values.yaml > ./gorkem/tmp-enc/tap-sensitive-values.sops.yaml
 mv ./gorkem/tmp-enc/tap-sensitive-values.sops.yaml ./clusters/full-profile/cluster-config/values
+
+sops --encrypt ./gorkem/tmp-enc/tanzu-sync-values.yaml > ./gorkem/tmp-enc/tanzu-sync-values.sops.yaml
+mv ./gorkem/tmp-enc/tanzu-sync-values.sops.yaml ./clusters/full-profile/tanzu-sync/app/sensitive-values/tanzu-sync-values.sops.yaml
 
 ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/custom-schema-template.yaml > ./clusters/full-profile/cluster-config/config/custom-schema.yaml
 cp ./gorkem/templates/acs.yaml ./clusters/full-profile/cluster-config/config/acs.yaml
@@ -159,16 +166,9 @@ if [ "$AIRGAPPED" = "true" ]; then
 fi
 ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tap-non-sensitive-values-template.yaml > ./clusters/full-profile/cluster-config/values/tap-values.yaml
 
-export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
-export INSTALL_REGISTRY_USERNAME=$(yq eval '.tanzuNet_username' ./gorkem/values.yaml)
-export INSTALL_REGISTRY_PASSWORD=$(yq eval '.tanzuNet_password' ./gorkem/values.yaml)
-export GIT_SSH_PRIVATE_KEY=$(cat $HOME/.ssh/id_rsa &>/dev/null || ssh-keygen -b 2048 -t rsa -f /$HOME/.ssh/id_rsa -q -N "" && cat $HOME/.ssh/id_rsa)
-export GIT_KNOWN_HOSTS=$(ssh-keyscan github.com)
-export SOPS_AGE_KEY=$(cat ./gorkem/tmp-enc/key.txt)
-
 
 git init && git add . && git commit -m "Big Bang" && git branch -M main
-git remote add origin https://github.com/gorkemozlu/tap-gitops-3.git
+git remote add origin $GIT_REPO
 git push -u origin main
 
 cd ./clusters/full-profile
@@ -176,11 +176,13 @@ cd ./clusters/full-profile
 cd ../../
 
 tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --password $HARBOR_PASSWORD --server $HARBOR_URL --namespace default --export-to-all-namespaces
+tanzu secret registry add lsp-push-credentials --username push-user --password 'VMware1!' --server $HARBOR_URL --namespace default
+tanzu secret registry add lsp-pull-credentials --username pull-user --password 'VMware1!' --server $HARBOR_URL --namespace default
 
 if [ "$AIRGAPPED" = "true" ]; then
-  export GIT_REPO=https://$(yq eval '.git_repo' gorkem/values.yaml)
-  export GIT_USER=$(yq eval '.git_user' gorkem/values.yaml)
-  export GIT_PASS=$(yq eval '.git_password' gorkem/values.yaml)
+  export GIT_REPO=https://git.$(yq eval '.git.gitea.git_repo' gorkem/values.yaml)
+  export GIT_USER=$(yq eval '.git.gitea.git_user' gorkem/values.yaml)
+  export GIT_PASS=$(yq eval '.git.gitea.git_password' gorkem/values.yaml)
   export CA_CERT=$(yq eval '.ca_cert_data' ./gorkem/values.yaml)
   export INGRESS_DOMAIN=$(yq eval '.ingress_domain' ./gorkem/values.yaml)
   mkdir -p ./clusters/full-profile/cluster-config/dependant-resources/tools
@@ -208,7 +210,7 @@ EOF
   ytt --ignore-unknown-comments --data-value git_push_repo=$remote_url_ -f gorkem/templates/dependant-resources-app.yaml > clusters/full-profile/cluster-config/config/dependant-resources-app.yaml
   
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/local-issuer.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/local-issuer.yaml
-  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/gitea.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/gitea.yaml
+  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/git.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/gitea.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/nexus.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/nexus.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/minio.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/minio.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/crossplane-ca.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/crossplane-ca.yaml
@@ -223,7 +225,7 @@ ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tool
 cd ./clusters/full-profile
 
 git add ./cluster-config/ ./tanzu-sync/
-git commit -m "Configure install of TAP 1.5.0"
+git commit -m "Configure install of TAP 1.6.2"
 git push
 
 ./tanzu-sync/scripts/deploy.sh

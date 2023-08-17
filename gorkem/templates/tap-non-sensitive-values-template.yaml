@@ -25,9 +25,9 @@ tap_install:
         server: #@ "{}".format(data.values.image_registry)
         repository: #@ "{}".format(data.values.image_registry_supply_chain)
       gitops:
-        #@ if/end not data.values.git_repo:
+        #@ if/end not data.values.git.gitea.git_repo:
         ssh_secret: ""
-        #@ if/end data.values.git_repo:
+        #@ if/end data.values.git.gitea.git_repo:
         ssh_secret: "git-secret"
       #@ if data.values.maven_repo:
       maven:
@@ -41,9 +41,9 @@ tap_install:
         server: #@ "{}".format(data.values.image_registry)
         repository: #@ "{}".format(data.values.image_registry_supply_chain)
       gitops:
-        #@ if/end not data.values.git_repo:
+        #@ if/end not data.values.git.gitea.git_repo:
         ssh_secret: ""
-        #@ if/end data.values.git_repo:
+        #@ if/end data.values.git.gitea.git_repo:
         ssh_secret: "git-secret"
       #@ if data.values.maven_repo:
       maven:
@@ -57,9 +57,9 @@ tap_install:
         server: #@ "{}".format(data.values.image_registry)
         repository: #@ "{}".format(data.values.image_registry_supply_chain)
       gitops:
-        #@ if/end not data.values.git_repo:
+        #@ if/end not data.values.git.gitea.git_repo:
         ssh_secret: ""
-        #@ if/end data.values.git_repo:
+        #@ if/end data.values.git.gitea.git_repo:
         ssh_secret: "git-secret"
       #@ if data.values.maven_repo:
       maven:
@@ -72,6 +72,16 @@ tap_install:
       envoy:
         service:
           type: LoadBalancer
+          #! loadBalancerIP: 10.10.10.100
+      contour:
+        configFileContents:
+          tls:
+            minimum-protocol-version: "1.2"
+            cipher-suites:
+            - '[ECDHE-ECDSA-AES128-GCM-SHA256|ECDHE-ECDSA-CHACHA20-POLY1305]'
+            - '[ECDHE-RSA-AES128-GCM-SHA256|ECDHE-RSA-CHACHA20-POLY1305]'
+            - 'ECDHE-ECDSA-AES256-GCM-SHA384'
+            - 'ECDHE-RSA-AES256-GCM-SHA384'
     
     buildservice:
       kp_default_repository: #@ "{}/{}".format(data.values.image_registry, data.values.image_registry_build)
@@ -92,7 +102,7 @@ tap_install:
         backend:
           reading:
             allow:
-              - host: #@ data.values.git_repo
+              - host: #@ "git.{}".format(data.values.git.gitea.git_repo) 
         auth:
           allowGuestAccess: true
           environment: development
@@ -138,7 +148,7 @@ tap_install:
       mysql:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 9.8.1
+          version: 9.10.0
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
@@ -148,7 +158,7 @@ tap_install:
       postgresql:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 12.3.1
+          version: 12.8.2
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
@@ -158,7 +168,7 @@ tap_install:
       rabbitmq:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 11.14.2
+          version: 12.0.0
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
@@ -168,7 +178,27 @@ tap_install:
       redis:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 17.10.0
+          version: 17.15.0
+          chart_pull_secret_ref:
+            name: chart-pull
+            namespace: default
+          container_pull_secret_ref:
+            name: container-pull
+            namespace: default
+      kafka:
+        helm_chart:
+          repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
+          version: 24.0.1
+          chart_pull_secret_ref:
+            name: chart-pull
+            namespace: default
+          container_pull_secret_ref:
+            name: container-pull
+            namespace: default
+      mongodb:
+        helm_chart:
+          repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
+          version: 13.16.0
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
@@ -182,6 +212,17 @@ tap_install:
     tap_telemetry:
       installed_for_vmware_internal_use: "true"
 
+    local_source_proxy:
+      repository: #@ "{}/tap-lsp/tap-lsp".format(data.values.image_registry)
+      push_secret:
+        name:  lsp-push-credentials
+        namespace: default
+        create_export: true
+      pull_secret:
+        name:  lsp-pull-credentials
+        namespace: default
+        create_export: true
+
     namespace_provisioner:
       controller: false
       gitops_install:
@@ -194,7 +235,7 @@ tap_install:
           subPath: gorkem/namespace-provisioner/resources
           url: https://github.com/gorkemozlu/tap-gitops-ri.git
         path: _ytt_lib/resources
-      #@ if/end data.values.git_repo:
+      #@ if/end data.values.git.gitea.git_repo:
       import_data_values_secrets:
       - name: workload-git-auth
         namespace: tap-install
@@ -204,3 +245,7 @@ tap_install:
       - name: grype-airgap-overlay-override
         namespace: tap-install
         create_export: true
+    package_overlays:
+      - name: ootb-supply-chain-testing-scanning
+        secrets:
+          - name: ootb-supply-chain-testing-scanning-add-source-scanner

@@ -1,0 +1,17 @@
+# mkdir -p /root/nexus-data/
+# iptables -I INPUT -p tcp -s 0.0.0.0/0 --dport 8080 -j ACCEPT
+# iptables -I INPUT -p tcp -s 0.0.0.0/0 --dport 8081 -j ACCEPT
+# docker-compose -f nexus-docker-compose.yaml up -d
+version: '3.4'
+services:
+  nexus:
+    container_name: nexus
+    image: projects.registry.vmware.com/tanzu_meta_pocs/tools/nexus3:latest
+    user: 0:0
+    ports:
+      - '8080:8080'
+      - '8081:8081'
+    volumes:
+      - '/root/nexus-data/:/nexus-data/'
+    environment:
+      - 'INSTALL4J_ADD_VM_PARAMS=-Xms1500m -Xmx1500m -XX:MaxDirectMemorySize=1500m -Djava.util.prefs.userRoot=/nexus-data/javaprefs'

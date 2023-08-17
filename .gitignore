@@ -1,4 +1,5 @@
 gorkem/tmp-enc/key.txt
+gorkem/tmp-enc/tanzu-sync-values.yaml
 gorkem/tmp-enc/tap-sensitive-values.yaml
 gorkem/tanzu-cluster-essentials/
 gorkem/tanzu-cluster-essentials-*.tgz

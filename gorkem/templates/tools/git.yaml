@@ -1,0 +1,158 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  name: packages
+spec: {}
+status: {}
+---
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: Package
+metadata:
+  name: gitea.vmware.com.1.15.3+0
+  namespace: packages
+spec:
+  refName: gitea.vmware.com
+  version: 1.15.3+0
+  releaseNotes: |
+        Initial release of the gitea package
+  licenses:
+  - "Apache 2.0"
+  releasedAt: 2021-11-25T04:45:00Z
+  valuesSchema:
+    openAPIv3:
+      title: gitea.vmware.com values schema
+      examples:
+      - ingress_domain: shared.azure.grogscave.net
+        ingress_secret: default/default-cert-tls
+      properties:
+        ingress_domain:
+          type: string
+          description: Top level ingress domain for cluster.  Will prepend "gitea" to the domain for ingress.
+          examples:
+          - shared.azure.grogscave.net
+        ingress_secret:
+          type: string
+          description: Name of TLS secret to use with HTTPProxy.  Can be a delgated secret from another namespace.
+          examples:
+          - my-tls-secret
+          - default/default-cert-tls
+        cert_ClusterIssuerName:
+          type: string
+          description: Name of the ClusterIssuer that will create the certificates
+          examples:
+          - local-issuer
+        ingress_className:
+          type: string
+          description: Name of the ingressClassName
+          examples:
+          - tmc-local
+        extra_repository_config:
+          type: string
+          description: Any extra configuration for the Gitea INI
+          examples:
+          - |
+              DEFAULT_BRANCH = main
+              DEFAULT_PRIVATE = public
+              DEFAULT_PUSH_CREATE_PRIVATE = false
+              ENABLE_PUSH_CREATE_USER = true
+        admin_username:
+          type: string
+          description: The admin account username
+          default: tanzu
+          examples:
+          - my_admin
+        admin_password:
+          type: string
+          description: The admin account password
+          examples:
+          - Xy4MgZ7OD3qR7DCL
+  template:
+    spec:
+      fetch:
+      - imgpkgBundle:
+          image: projects.registry.vmware.com/tanzu_meta_pocs/tools/gitea:1.15.3_2
+      template:
+      - ytt:
+          paths:
+          - "config/"
+      - kbld:
+          paths:
+          - "-"
+          - ".imgpkg/images.yml"
+      deploy:
+      - kapp: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    tkg.tanzu.vmware.com/tanzu-package: package-gitea-package
+    kapp.k14s.io/update-strategy: "fallback-on-replace"
+  name: package-gitea-package-sa
+  namespace: packages
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    tkg.tanzu.vmware.com/tanzu-package: package-gitea-package
+    kapp.k14s.io/update-strategy: "fallback-on-replace"
+  name: package-gitea-package-cluster-role
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    tkg.tanzu.vmware.com/tanzu-package: package-gitea-package
+    kapp.k14s.io/update-strategy: "fallback-on-replace"
+  name: package-gitea-package-cluster-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: package-gitea-package-cluster-role
+subjects:
+- kind: ServiceAccount
+  name: package-gitea-package-sa
+  namespace: packages
+---
+apiVersion: packaging.carvel.dev/v1alpha1
+kind: PackageInstall
+metadata:
+  annotations:
+    kapp.k14s.io/change-group: gitea
+  name: gitea
+  namespace: packages
+spec:
+  packageRef:
+    refName: gitea.vmware.com
+    versionSelection:
+      constraints: 1.15.3+0
+      prereleases: {}
+  serviceAccountName: package-gitea-package-sa
+  values:
+  - secretRef:
+      name: gitea-values
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitea-values
+  namespace: packages
+#@yaml/text-templated-strings
+stringData:
+  values.yaml: |-
+    ingress_domain: "(@= data.values.git.gitea.git_repo @)"
+    cert_ClusterIssuerName: "local-issuer"
+    admin_username: "(@= data.values.git.gitea.git_user @)"
+    admin_password: "(@= data.values.git.gitea.git_password @)"
+    extra_repository_config: ""

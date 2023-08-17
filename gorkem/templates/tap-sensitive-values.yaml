@@ -1,0 +1,10 @@
+#@ load("@ytt:data", "data")
+---
+tap_install:
+  sensitive_values:
+    shared:
+      image_registry:
+        username: #@ data.values.image_registry_user
+        password: #@ data.values.image_registry_password
+    buildservice:
+      kp_default_repository_password: #@ data.values.image_registry_password
