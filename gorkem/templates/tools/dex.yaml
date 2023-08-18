@@ -67,6 +67,11 @@ stringData:
       - '(@= "https://tap-gui.{}/api/auth/oidc/handler/frame".format(data.values.ingress_domain) @)'
       name: 'tap-auth'
       secret: secretvalue
+    - id: admin-octant
+      redirectURIs:
+      - '(@= "https://octant.{}/oauth2/callback".format(data.values.ingress_domain) @)'
+      name: 'admin-octant'
+      secret: secretvalue
     oauth2:
       skipApprovalScreen: true
     storage:
