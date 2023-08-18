@@ -185,6 +185,8 @@ if [ "$AIRGAPPED" = "true" ]; then
   export GIT_USER=$(yq eval '.git.gitea.git_user' gorkem/values.yaml)
   export GIT_PASS=$(yq eval '.git.gitea.git_password' gorkem/values.yaml)
   export CA_CERT=$(yq eval '.ca_cert_data' ./gorkem/values.yaml)
+  export OTHER_CA_CERT=$(yq eval '.other_ca_cert_data' ./gorkem/values.yaml)
+  export ALL_CA_CERT=$(echo -e "$CA_CERT""\n""$OTHER_CA_CERT")
   export INGRESS_DOMAIN=$(yq eval '.ingress_domain' ./gorkem/values.yaml)
   mkdir -p ./clusters/full-profile/cluster-config/dependant-resources/tools
 cat > ./clusters/full-profile/cluster-config/dependant-resources/tools/workload-git-auth.yaml <<-EOF
@@ -202,7 +204,7 @@ stringData:
       username: $GIT_USER
       password: $GIT_PASS
       caFile: |
-$(echo "$CA_CERT" | sed 's/^/        /')
+$(echo "$ALL_CA_CERT" | sed 's/^/        /')
 EOF
   
   export remote_branch_=$( git status --porcelain=2 --branch | grep "^# branch.upstream" | awk '{ print $3 }' )

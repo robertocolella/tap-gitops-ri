@@ -12,4 +12,4 @@ type: kubernetes.io/basic-auth
 data:
   username: dGFuenU=
   password: Vk13YXJlMSE=
-  caFile: #@ base64.encode(data.values.ca_cert_data)
+  caFile: #@ base64.encode("{}\n{}".format(data.values.ca_cert_data,data.values.other_ca_cert_data))

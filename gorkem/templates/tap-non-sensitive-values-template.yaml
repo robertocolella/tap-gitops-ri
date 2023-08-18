@@ -11,7 +11,7 @@ tap_install:
       image_registry:
         project_path: #@ "{}/{}".format(data.values.image_registry, data.values.image_registry_tap)
       #@ if "ca_cert_data" in data.values:
-      ca_cert_data: #@ data.values.ca_cert_data
+      ca_cert_data: #@ "{}\n{}".format(data.values.ca_cert_data,data.values.other_ca_cert_data)
       #@ end
     
     ceip_policy_disclosed: true

@@ -55,3 +55,7 @@ ca_cert_key: |
   -----BEGIN PRIVATE KEY-----
   MIIFXzCCA0egAwIBAgIJAJYm37SFocjlMA0GCSqGSIb3DQEBDQUAMEY...
   -----END PRIVATE KEY-----
+other_ca_cert_data: |
+  -----BEGIN CERTIFICATE-----
+  MIIFJnjVG0egNJbhsdjNJASDHBASLMASSsdjnnsdGSFYCLKNvghjFCG...
+  -----END CERTIFICATE-----
