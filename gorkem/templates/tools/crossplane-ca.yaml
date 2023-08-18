@@ -24,7 +24,7 @@ type: kubernetes.io/dockerconfigjson
 ---
 apiVersion: v1
 data:
-  ca-bundle: #@ "{}\n{}".format(data.values.ca_cert_data,data.values.other_ca_cert_data)ca_cert_data
+  ca-bundle: #@ "{}\n{}".format(data.values.ca_cert_data,data.values.other_ca_cert_data)
 kind: ConfigMap
 metadata:
   creationTimestamp: null
