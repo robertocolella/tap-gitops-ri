@@ -169,6 +169,7 @@ ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tap-
 
 git init && git add . && git commit -m "Big Bang" && git branch -M main
 git remote add origin $GIT_REPO
+git config http.sslVerify "false"
 git push -u origin main
 
 cd ./clusters/full-profile
@@ -229,6 +230,7 @@ cd ./clusters/full-profile
 
 git add ./cluster-config/ ./tanzu-sync/
 git commit -m "Configure install of TAP $TAP_VERSION"
+git config http.sslVerify "false"
 git push
 
 ./tanzu-sync/scripts/deploy.sh
