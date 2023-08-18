@@ -224,6 +224,7 @@ fi
 cp ./gorkem/templates/tools/openldap.yaml clusters/full-profile/cluster-config/dependant-resources/tools/openldap.yaml
 ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/dex.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/dex.yaml
 ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/efk.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/efk.yaml
+ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/octant.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/octant.yaml
 
 export TAP_VERSION_ORG="1.6.1"
 grep -iRl "$TAP_VERSION_ORG" . | xargs perl -pi -e "s/$TAP_VERSION_ORG/$TAP_VERSION/g"

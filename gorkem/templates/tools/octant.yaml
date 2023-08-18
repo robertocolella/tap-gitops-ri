@@ -1,0 +1,213 @@
+#@ load("@ytt:data", "data")
+---
+#! ytt -f templates/values-template.yaml -f templates/demo/octant.yaml | kubectl apply -f -
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  name: octant
+spec: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: octant-admin
+  namespace: octant
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-octant-crb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: octant-admin
+  namespace: octant
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: sso:administrator@vsphere.local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: octant-dashboard
+  namespace: octant
+  labels:
+    app.kubernetes.io/name: octant
+    app.kubernetes.io/instance: octant-dashboard
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/name: octant
+    app.kubernetes.io/instance: octant-dashboard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: octant-dashboard
+  namespace: octant
+  labels:
+    app.kubernetes.io/name: octant
+    app.kubernetes.io/instance: octant-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: octant
+      app.kubernetes.io/instance: octant-dashboard
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: octant
+        app.kubernetes.io/instance: octant-dashboard
+    spec:
+      serviceAccountName: octant-admin
+      securityContext:
+        fsGroup: 2000
+      initContainers: null
+      containers:
+      - name: octant
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+        image: projects.registry.vmware.com/tanzu_meta_pocs/tools/octant-dashboard:v0.25.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        env:
+        - name: OCTANT_HTTP_PORT
+          value: "8000"
+        - name: OCTANT_PLUGINS_DIR
+          value: /home/octant/.config/octant/plugins/
+        - name: OCTANT_PLUGINS_LIST
+          value: ""
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+        volumeMounts:
+        - name: tmp-mount
+          mountPath: /tmp
+        - name: plugins-mount
+          mountPath: /home/octant/.config/octant/plugins/
+        resources: {}
+      volumes:
+      - name: tmp-mount
+        emptyDir: {}
+      - name: plugins-mount
+        emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: octant-auth-proxy
+  name: octant-auth-proxy
+  namespace: octant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: octant-auth-proxy
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: octant-auth-proxy
+    spec:
+      containers:
+      - args:
+        - --provider=oidc
+        - --client-id=admin-octant
+        - --client-secret=secretvalue
+        - #@ "--oidc-issuer-url=https://dex.{}".format(data.values.ingress_domain)
+        - --cookie-secret=bm90LWdvb2Qtc2VjcmV0Cg==
+        - --cookie-refresh=2m
+        - --upstream=http://octant-dashboard:8000/
+        - --http-address=0.0.0.0:3000
+        - --email-domain="*"
+        - --pass-basic-auth=false
+        - --pass-access-token=true
+        - --pass-authorization-header=true
+        - --proxy-prefix=/oauth2
+        - --ssl-insecure-skip-verify
+        image: projects.registry.vmware.com/tanzu_meta_pocs/tools/oauth2-proxy:7.2.1
+        imagePullPolicy: IfNotPresent
+        name: octant-auth-proxy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: octant-auth-proxy
+  name: octant-auth-proxy
+  namespace: octant
+spec:
+  ports:
+  - name: http
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    name: octant-auth-proxy
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: octant-oauth-tls
+  namespace: octant
+spec:
+  commonName: #@ "octant.{}".format(data.values.ingress_domain)
+  dnsNames:
+  - #@ "octant.{}".format(data.values.ingress_domain)
+  duration: 2160h0m0s
+  issuerRef:
+    kind: ClusterIssuer
+    name: local-issuer
+  secretName: octant-oauth-tls
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: octant-oauth
+  namespace: octant
+spec:
+  routes:
+  - conditions:
+    - prefix: /
+    enableWebsockets: true
+    services:
+    - name: octant-auth-proxy
+      port: 3000
+  virtualhost:
+    fqdn: #@ "octant.{}".format(data.values.ingress_domain)
+    tls:
+      secretName: octant-oauth-tls
