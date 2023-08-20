@@ -9,6 +9,7 @@ metadata:
     kapp.k14s.io/change-rule.0: "upsert after upserting contour"
 spec:
   serviceAccountName: sync-sa
+  syncPeriod: 1m
   fetch:
     - git:
         ref: origin/main
@@ -29,6 +30,7 @@ metadata:
     kapp.k14s.io/change-rule.0: upsert after upserting contour
 spec:
   serviceAccountName: sync-sa
+  syncPeriod: 1m
   fetch:
   - git:
       ref: origin/main
