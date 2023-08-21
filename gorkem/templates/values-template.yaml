@@ -14,6 +14,9 @@ image_registry_password: 'VMware1!'
 image_registry_tap: tap-16
 image_registry_build: tap-16/build
 image_registry_supply_chain: tap-16/supplychain
+ingress_ip:
+  enabled: false
+  ip: 10.10.10.100
 acs: true
 acs_version: 2.1.0
 scg: true

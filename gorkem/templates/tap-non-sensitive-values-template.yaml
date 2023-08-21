@@ -72,7 +72,9 @@ tap_install:
       envoy:
         service:
           type: LoadBalancer
-          #! loadBalancerIP: 10.10.10.100
+          #@ if data.values.ingress_ip.enabled == True:
+          loadBalancerIP: 10.10.10.100
+          #@ end
       contour:
         configFileContents:
           tls:
