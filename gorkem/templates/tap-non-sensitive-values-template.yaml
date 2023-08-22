@@ -97,6 +97,13 @@ tap_install:
       metadataStoreAutoconfiguration: true
       ingressEnabled: "true"
       app_config:
+        #@ if data.values.customization.enabled == True:
+        customize:
+          custom_logo: #@ data.values.customization.custom_logo_base64
+          custom_name: #@ "{} Developer Portal".format(data.values.customization.custom_name)
+        organization:
+          name: #@ data.values.customization.custom_name
+        #@ end
         catalog:
           locations:
             - type: url

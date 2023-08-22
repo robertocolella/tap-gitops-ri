@@ -52,6 +52,10 @@ git:
 tanzuNet_username: 'username@corp.com'                                                           #! if you need to download images / binaries with "-prep" parameter, this will be required. If not, no need to set this.
 tanzuNet_password: 'password'                                                                    #! if you need to download images / binaries with "-prep" parameter, this will be required. If not, no need to set this.
 pivnet_token: "token-here"                                                                       #! if you need to download images / binaries with "-prep" parameter, this will be required. If not, no need to set this.
+customization:
+  enabled: false                                                                                 #! if enabled, TAP-GUI will be customized.
+  custom_name: "Customer Name"                                                                   #! Update with customer name.
+  custom_logo_base64: iVBORw0KGgoAAAANSUhEUgAAASwAAAEDCAMAAAC4WcmkAAAC9...                       #! Update with customer's transparent logo in base64 format.
 #! Paste ca.crt / Example: CA Cert for *.tap.corp.com / This will be be Root CA for TAP domain.
 ca_cert_data: |
   -----BEGIN CERTIFICATE-----
