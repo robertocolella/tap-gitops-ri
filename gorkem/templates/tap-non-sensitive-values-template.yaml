@@ -157,7 +157,7 @@ tap_install:
       mysql:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 9.11.0
+          version: 9.11.2
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
@@ -167,7 +167,7 @@ tap_install:
       postgresql:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 12.8.2
+          version: 12.8.4
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
@@ -177,7 +177,7 @@ tap_install:
       rabbitmq:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 12.0.1
+          version: 12.0.3
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
@@ -187,7 +187,7 @@ tap_install:
       redis:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 17.15.1
+          version: 17.15.3
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
@@ -197,7 +197,7 @@ tap_install:
       kafka:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 24.0.1
+          version: 24.0.4
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
@@ -207,7 +207,7 @@ tap_install:
       mongodb:
         helm_chart:
           repo: #@ "oci://{}/bitnami/charts".format(data.values.image_registry)
-          version: 13.16.0
+          version: 13.16.1
           chart_pull_secret_ref:
             name: chart-pull
             namespace: default
