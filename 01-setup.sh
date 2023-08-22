@@ -183,6 +183,9 @@ if [ "$AIRGAPPED" = "true" ]; then
   export GIT_REPO=https://git.$(yq eval '.git.gitea.git_repo' gorkem/values.yaml)
   export GIT_USER=$(yq eval '.git.gitea.git_user' gorkem/values.yaml)
   export GIT_PASS=$(yq eval '.git.gitea.git_password' gorkem/values.yaml)
+  export MAVEN_REPO=$(yq eval '.maven_repo' gorkem/values.yaml)
+  export NPM_REPO=$(yq eval '.npm_repo' gorkem/values.yaml)
+  export NUGET_REPO=$(yq eval '.nuget_repo' gorkem/values.yaml)
   export CA_CERT=$(yq eval '.ca_cert_data' ./gorkem/values.yaml)
   export OTHER_CA_CERT=$(yq eval '.other_ca_cert_data' ./gorkem/values.yaml)
   export ALL_CA_CERT=$(echo -e "$CA_CERT""\n""$OTHER_CA_CERT")
@@ -197,6 +200,10 @@ metadata:
 type: Opaque
 stringData:
   content.yaml: |
+    repo:
+      maven: $MAVEN_REPO
+      npm: $NPM_REPO
+      nuget: $NUGET_REPO
     git:
       ingress_domain: $INGRESS_DOMAIN
       host: $GIT_REPO

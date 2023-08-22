@@ -5,7 +5,8 @@
 #@ end
 #@ if/end not in_list('ssh_secret', ['']):
 ---
-#@ maven_repo = "https://nexus-80.{}/repository/maven-central/".format(data.values.imported.git.ingress_domain)
+#@ maven_repo_internal = "https://nexus-80.{}/repository/maven-central/".format(data.values.imported.git.ingress_domain)
+#@ maven_repo = "{}".format(data.values.imported.repo.maven)
 #@ username = data.values.imported.git.username
 #@ password = data.values.imported.git.password
 apiVersion: v1

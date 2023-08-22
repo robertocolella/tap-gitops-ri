@@ -5,7 +5,8 @@
 #@ end
 #@ if/end not in_list('ssh_secret', ['']):
 ---
-#@ nuget_repo = "https://nexus-80.{}/repository/nuget.org-proxy/index.json".format(data.values.imported.git.ingress_domain)
+#@ nuget_repo_internal = "https://nexus-80.{}/repository/nuget.org-proxy/index.json".format(data.values.imported.git.ingress_domain)
+#@ nuget_repo = "{}".format(data.values.imported.repo.nuget)
 apiVersion: v1
 kind: Secret
 metadata:

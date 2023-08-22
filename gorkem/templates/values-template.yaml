@@ -19,7 +19,9 @@ scg: true                                                                       
 scg_version: 2.0.6                                                                               #! the version of spring-cloud-gateway
 tbs_full_deps: true                                                                              #! if in airgapped, mark as true
 tbs_version: 1.11.5                                                                              #! the version of tanzu-build-service
-maven_repo: https://nexus-80.tap.corp.com/repository/maven-central/                              #! maven URL
+maven_repo: https://nexus-80.tap.corp.com/repository/maven-central/                              #! maven repo URL
+npm_repo: https://nexus-80.tap.corp.com/repository/npm/                                          #! npm repo URL
+nuget_repo: https://nexus-80.tap.corp.com/repository/nuget.org-proxy/index.json                  #! nuget repo URL
 airgapped: true                                                                                  #! if in airgapped env, mark as true
 tkg_cluster_name: gorkem                                                                         #! name of the cluster. For fluent-bit logging.
 git:

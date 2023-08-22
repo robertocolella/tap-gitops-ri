@@ -5,7 +5,8 @@
 #@ end
 #@ if/end not in_list('ssh_secret', ['']):
 ---
-#@ npm_repo = "https://nexus-80.{}/repository/npm/".format(data.values.imported.git.ingress_domain)
+#@ npm_repo_internal = "https://nexus-80.{}/repository/npm/".format(data.values.imported.git.ingress_domain)
+#@ npm_repo = "{}".format(data.values.imported.repo.npm)
 apiVersion: v1
 kind: Secret
 metadata:
