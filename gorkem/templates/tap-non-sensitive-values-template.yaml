@@ -73,7 +73,7 @@ tap_install:
         service:
           type: LoadBalancer
           #@ if data.values.ingress_ip.enabled == True:
-          loadBalancerIP: 10.10.10.100
+          loadBalancerIP: #@ data.values.ingress_ip.ip
           #@ end
       contour:
         configFileContents:
