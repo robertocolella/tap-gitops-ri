@@ -123,9 +123,9 @@ if [ "$1" = "prep" ]; then
     imgpkg copy -b projects.registry.vmware.com/tanzu_meta_pocs/tools/gitea:1.15.3_2 --to-tar=images/gitea-bundle.tar
     imgpkg copy -i projects.registry.vmware.com/tanzu_meta_pocs/tools/gradle:latest --to-tar=images/gradle.tar
     cd git-repos/
-    git clone https://github.com/gorkemozlu/weatherforecast-steeltoe-net-tap && rm -rf weatherforecast-steeltoe-net-tap/.git
-    git clone https://github.com/gorkemozlu/tanzu-java-web-app && rm -rf tanzu-java-web-app/.git
-    git clone https://github.com/gorkemozlu/node-express && rm -rf node-express/.git
+    git clone https://github.com/gorkemozlu/weatherforecast-steeltoe-net-tap && rm -rf weatherforecast-steeltoe-net-tap/.git && cp ../../gorkem/sample-workloads/workload-dotnet-core.yaml weatherforecast-steeltoe-net-tap/config/workload.yaml
+    git clone https://github.com/gorkemozlu/tanzu-java-web-app && rm -rf tanzu-java-web-app/.git && cp ../../gorkem/sample-workloads/workload-java.yaml tanzu-java-web-app/config/workload.yaml
+    git clone https://github.com/gorkemozlu/node-express && rm -rf node-express/.git && cp ../../gorkem/sample-workloads/workload-nodejs.yaml node-express/config/workload.yaml
     git clone https://github.com/MoSehsah/bank-demo && rm -rf bank-demo/.git
     cd ..
 
