@@ -406,6 +406,49 @@ elif [ "$1" = "post-install" ]; then
     cd ..
     cd ../..
 
+    export HARBOR_URL=$(yq eval '.image_registry' ./gorkem/values.yaml)
+    export HARBOR_PASSWORD=$(yq eval '.image_registry_password' ./gorkem/values.yaml)
+    mkdir -p /root/nexus-data/
+    iptables -I INPUT -p tcp -s 0.0.0.0/0 --dport 8080 -j ACCEPT
+    iptables -I INPUT -p tcp -s 0.0.0.0/0 --dport 8081 -j ACCEPT
+    cat > /etc/docker/daemon.json <<-EOF
+    {
+        "data-root": "/docker_storage",
+        "insecure-registries" : ["$HARBOR_URL:443"]
+    }
+EOF
+    systemctl restart docker
+    docker-compose -f gorkem/templates/tools/nexus-docker-compose.yaml up -d
+    export SIVT_VM_IP=$(ip a|grep inet|grep eth0| grep -oE 'inet ([0-9]{1,3}\.){3}[0-9]{1,3}' | awk '{print $2}')
+    while true; do
+        response=$(curl -s -o /dev/null -w "%{http_code}" "http://$SIVT_VM_IP:8081/" -k)
+        
+        if [[ "$response" == "200" ]]; then
+            echo "Nexus is accessible! (HTTP response code: $response)."
+            break
+        else
+            echo "Nexus is not accessible yet (HTTP response code: $response), will retry again in 45 seconds"
+        fi
+        
+        sleep 45 # Adjust the sleep duration between attempts as needed
+    done
+    
+    export SIVT_VM_IP=$(ip a|grep inet|grep eth0| grep -oE 'inet ([0-9]{1,3}\.){3}[0-9]{1,3}' | awk '{print $2}')
+    while [[ -z "$nexus_init_pass_docker" ]]; do
+        export nexus_init_pass_docker=$(cat /root/nexus-data/admin.password)
+        if [[ -n "$nexus_init_pass_docker" ]]; then
+            echo "nexus_init_pass_docker is now non-empty: $nexus_init_pass_docker"
+            break
+        fi
+        sleep 15
+    done
+    echo $nexus_init_pass_docker
+    curl -u "admin:${nexus_init_pass_docker}" -X 'PUT' "http://$SIVT_VM_IP:8081/service/rest/v1/security/users/admin/change-password" -H 'accept: application/json' -H 'Content-Type: text/plain' -d ${HARBOR_PASSWORD} -k
+    curl -u "admin:${HARBOR_PASSWORD}" -X 'PUT' "http://$SIVT_VM_IP:8081/service/rest/v1/security/anonymous" -H 'accept: application/json' -H 'Content-Type: text/plain' -d '{"enabled": true, "userId": "anonymous", "realmName": "NexusAuthorizingRealm"}' -k
+    curl -u "admin:${HARBOR_PASSWORD}" -X 'POST' "http://$SIVT_VM_IP:8081/service/rest/v1/repositories/npm/proxy" -H 'accept: application/json' -H 'Content-Type: application/json' -d '{"name": "npm","online": true,"storage": {"blobStoreName": "default","strictContentTypeValidation": true,"writePolicy": "ALLOW"},"cleanup": null,"proxy": {"remoteUrl": "https://registry.npmjs.org","contentMaxAge": 1440,"metadataMaxAge": 1440},"negativeCache": {"enabled": true,"timeToLive": 1440},"httpClient": {"blocked": false,"autoBlock": true,"connection": {"retries": null,"userAgentSuffix": null,"timeout": null,"enableCircularRedirects": false,"enableCookies": false,"useTrustStore": false},"authentication": null},"routingRuleName": null,"npm": {"removeNonCataloged": false,"removeQuarantined": false},"format": "npm","type": "proxy"}' -k
+    curl -u "admin:${HARBOR_PASSWORD}" -X 'POST' "http://$SIVT_VM_IP:8081/service/rest/v1/security/users" -H 'accept: application/json' -H 'Content-Type: application/json' -d '{"userId": "tanzu","firstName": "tanzu","lastName": "tanzu","emailAddress": "tanzu@vmware.com","password": "VMware1!","status": "active","roles": ["nx-admin"]}' -k
+
+
 elif [ "$1" = "gen-cert" ]; then
     mkdir -p cert/
     cd cert
