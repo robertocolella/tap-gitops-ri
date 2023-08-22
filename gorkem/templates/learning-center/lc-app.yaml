@@ -1,0 +1,24 @@
+#@ load("@ytt:data", "data")
+---
+#! ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/learning-center/lc-app.yaml
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: learning-center-sample-workshop
+  namespace: tanzu-sync
+  annotations:
+    kapp.k14s.io/change-rule.0: upsert after upserting learningcenter-workshops
+spec:
+  serviceAccountName: sync-sa
+  syncPeriod: 1m
+  fetch:
+  - git:
+      ref: origin/main
+      url: #@ "{}".format(data.values.git.push_repo.fqdn)
+      subPath: gorkem/templates/learning-center/resources
+  template:
+  - ytt: {}
+  deploy:
+  - kapp:
+      rawOptions:
+      - --dangerous-allow-empty-list-of-resources=true

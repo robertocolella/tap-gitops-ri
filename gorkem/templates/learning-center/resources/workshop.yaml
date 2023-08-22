@@ -1,0 +1,30 @@
+apiVersion: learningcenter.tanzu.vmware.com/v1beta1
+kind: Workshop
+metadata:
+  name: sample-workshop
+spec:
+  title: Example Workshop
+  description: A sample workshop
+  vendor: eduk8s.io
+  difficulty: beginner
+  duration: 15m
+  url: https://git.tmc.h2o-4-16714.h2o.vmware.com/tanzu/learning-center-sample
+  content:
+    image: projects.registry.vmware.com/tanzu_meta_pocs_tap/tap/learning-center-image:v1.6.2
+    files: minio-service.minio.svc.cluster.local:9000/learning/archive.tar
+  session:
+    namespaces:
+      budget: small
+      security:
+        policy: nonroot
+    applications:
+      terminal:
+        enabled: true
+        layout: split
+      console:
+        enabled: true
+      editor:
+        enabled: true
+    dashboards:
+      - name: Tanzu-Developer-Center
+        url: https://tanzu.vmware.com/developer/workshops/

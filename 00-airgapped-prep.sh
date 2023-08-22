@@ -122,12 +122,14 @@ if [ "$1" = "prep" ]; then
     done
     imgpkg copy -b projects.registry.vmware.com/tanzu_meta_pocs/tools/gitea:1.15.3_2 --to-tar=images/gitea-bundle.tar
     imgpkg copy -i projects.registry.vmware.com/tanzu_meta_pocs/tools/gradle:latest --to-tar=images/gradle.tar
+    imgpkg copy -i projects.registry.vmware.com/tanzu_meta_pocs_tap/tap/learning-center-image:v1.6.2 --to-tar=images/learning-center-image.tar
     cd git-repos/
     git clone https://github.com/gorkemozlu/weatherforecast-steeltoe-net-tap && rm -rf weatherforecast-steeltoe-net-tap/.git && cp ../../gorkem/sample-workloads/workload-dotnet-core.yaml weatherforecast-steeltoe-net-tap/config/workload.yaml
     git clone https://github.com/gorkemozlu/tanzu-java-web-app && rm -rf tanzu-java-web-app/.git && cp ../../gorkem/sample-workloads/workload-java.yaml tanzu-java-web-app/config/workload.yaml
     git clone https://github.com/gorkemozlu/node-express && rm -rf node-express/.git && cp ../../gorkem/sample-workloads/workload-nodejs.yaml node-express/config/workload.yaml
     git clone https://github.com/spring-projects/spring-petclinic && rm -rf spring-petclinic/.git && mkdir -p spring-petclinic/config/ && ../../gorkem/sample-workloads/workload-java-postgres.yaml spring-petclinic/config/workload.yaml
     git clone https://github.com/MoSehsah/bank-demo && rm -rf bank-demo/.git
+    git clone https://github.com/gorkemozlu/learning-center-sample
     cd ..
 
     export configserver="projects.registry.vmware.com/tanzu_meta_pocs/banking-demo/configserver:latest"
@@ -327,6 +329,8 @@ EOF
     export gitea_image_harbor="$IMGPKG_REGISTRY_HOSTNAME_1/tools/tools/gitea:1.15.3_2"
     sed -i -e "s~$gitea_image~$gitea_image_harbor~g" gorkem/templates/tools/git.yml
 
+    imgpkg copy --tar airgapped-files/images/learning-center-image.tar --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tools/tools/learning-center-image --include-non-distributable-layers --registry-ca-cert-path $REGISTRY_CA_PATH
+
     imgpkg copy --tar airgapped-files/images/gradle.tar --to-repo $IMGPKG_REGISTRY_HOSTNAME_1/tools/tools/gradle --include-non-distributable-layers --registry-ca-cert-path $REGISTRY_CA_PATH
     export gradle_image="projects.registry.vmware.com/tanzu_meta_pocs/tools/gradle:latest"
     export gradle_image_harbor="$IMGPKG_REGISTRY_HOSTNAME_1/tools/tools/gradle:latest"
@@ -353,6 +357,10 @@ elif [ "$1" = "post-install" ]; then
     mc cp airgapped-files/vulnerability*.tar.gz minio/grype/databases/ --insecure
     mc cp airgapped-files/listing.json minio/grype/databases/ --insecure
     mc anonymous set download minio/grype --insecure
+
+    mc mb minio/learning --insecure
+    mc cp gorkem/learning-center/archive.tar minio/learning/ --insecure
+    mc anonymous set download minio/learning --insecure
 
     export gitea_user=$(yq eval '.git.gitea.git_user' ./gorkem/values.yaml)
     export gitea_pass=$(yq eval '.git.gitea.git_password' ./gorkem/values.yaml)
@@ -405,6 +413,19 @@ elif [ "$1" = "post-install" ]; then
     echo "git user: $gitea_user / pass: $gitea_pass"
     git push -u origin main
     cd ..
+
+    cd learning-center-sample
+    curl -k -X POST "https://git.$git_repo/api/v1/user/repos" -H "content-type: application/json" -H "Authorization: token $gitea_token" --data '{"name":"learning-center-sample","default_branch":"main"}' -k
+    git init
+    git checkout -b main
+    git add .
+    git commit -m "big bang"
+    git remote add origin https://git.$git_repo/tanzu/learning-center-sample.git
+    git config http.sslVerify "false"
+    echo "git user: $gitea_user / pass: $gitea_pass"
+    git push -u origin main
+    cd ..
+
     cd ../..
 
     export HARBOR_URL=$(yq eval '.image_registry' ./gorkem/values.yaml)

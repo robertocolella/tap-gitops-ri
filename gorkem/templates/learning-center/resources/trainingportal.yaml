@@ -1,0 +1,15 @@
+apiVersion: learningcenter.tanzu.vmware.com/v1beta1
+kind: TrainingPortal
+metadata:
+  name: customer
+spec:
+  portal:
+    registration:
+      type: anonymous
+    ingress:
+      hostname: customer
+  workshops:
+  - name: sample-workshop
+    capacity: 2
+    expires: 60m
+    orphaned: 5m
