@@ -1,42 +1,42 @@
 #@data/values
 ---
-ingress_domain: tap.corp.com
-image_registry: harbor.tap.corp.com
-tkg_cluster_name: gorkem
-tap_version: 1.6.2
-profile: full # supports only full profile for now
-supply_chain: testing_scanning # or testing or testing_scanning
-tanzuNet_username: 'username@corp.com'
-tanzuNet_password: 'password'
-pivnet_token: "token-here"
-image_registry_user: admin
-image_registry_password: 'VMware1!'
-image_registry_tap: tap-16
-image_registry_build: tap-16/build
-image_registry_supply_chain: tap-16/supplychain
+ingress_domain: tap.corp.com                                                                     #! enter the domain. a subdomain like "tap." is recommended as in the example.
 ingress_ip:
-  enabled: false
-  ip: 10.10.10.100
-acs: true
-acs_version: 2.1.0
-scg: true
-scg_version: 2.0.6
-airgapped: true
+  enabled: false                                                                                 #! enable if you want to set the ingress's IP address statically, enable this.
+  ip: 10.10.10.100                                                                               #! if enabled, set the VIP IP for ingress
+image_registry: harbor.tap.corp.com                                                              #! harbor fqdn
+tap_version: 1.6.2                                                                               #! TAP Version
+profile: full                                                                                    #! TAP profile. supports only full profile for now
+supply_chain: testing_scanning                                                                   #! or basic or testing
+image_registry_user: admin                                                                       #! harbor user
+image_registry_password: 'VMware1!'                                                              #! harbor password
+image_registry_tap: tap-16                                                                       #! TAP main project in the harbor.
+image_registry_build: tap-16/build                                                               #! TAP build project in the harbor
+image_registry_supply_chain: tap-16/supplychain                                                  #! TAP supply-chain project in the harbor
+acs: true                                                                                        #! enable if you want to have application-config-service
+acs_version: 2.1.0                                                                               #! the version of application-config-service
+scg: true                                                                                        #! enable if you want to have spring-cloud-gateway
+scg_version: 2.0.6                                                                               #! the version of spring-cloud-gateway
+tbs_full_deps: true                                                                              #! if in airgapped, mark as true
+tbs_version: 1.11.5                                                                              #! the version of tanzu-build-service
+maven_repo: https://nexus-80.tap.corp.com/repository/maven-central/                              #! maven URL
+airgapped: true                                                                                  #! if in airgapped env, mark as true
+tkg_cluster_name: gorkem                                                                         #! name of the cluster. For fluent-bit logging.
 git:
   gitea:
-    deploy: true
-    git_repo: tap.h2o-4-10940.h2o.vmware.com
-    git_user: tanzu
-    git_password: 'VMware1!'
+    deploy: true                                                                                 #! enable if you want to deploy gitea.
+    git_repo: tap.h2o-4-10940.h2o.vmware.com                                                     #! enter the domain. a subdomain of "git" will be automatically added. it will be git.tap.h2o-4-10940.h2o.vmware.com
+    git_user: tanzu                                                                              #! git user. No need to change.
+    git_password: 'VMware1!'                                                                     #! git password. No need to change.
   push_repo:
-    fqdn: https://github.com/gorkemozlu/tap-gitops-3.git
-    auth:
+    fqdn: https://https://git.tmc.h2o-4-16714.h2o.vmware.com/tanzu/tap-gitops.git                #! the git repo where you're going to push.
+    auth:                                                                                        #! authentication to the git repo. You should have only one auth method. basic_auth or ssh.
       basic_auth:
-        enabled: true
-        username: tanzu
-        password: 'VMware1!'
+        enabled: true                                                                            #! enable if you want to do basic auth.
+        username: tanzu                                                                          #! git username of the repo
+        password: 'VMware1!'                                                                     #! git password of the repo
       ssh:
-        enabled: false
+        enabled: false                                                                           #! enable if you want to do ssh auth.
         private_key: |
           -----BEGIN OPENSSH PRIVATE KEY-----
           b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
@@ -47,17 +47,20 @@ git:
           github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=
           github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
           github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
-tbs_full_deps: true
-tbs_version: 1.11.5
-maven_repo: https://nexus-80.tap.corp.com/repository/maven-central/
+tanzuNet_username: 'username@corp.com'                                                           #! if you need to download images / binaries with "-prep" parameter, this will be required. If not, no need to set this.
+tanzuNet_password: 'password'                                                                    #! if you need to download images / binaries with "-prep" parameter, this will be required. If not, no need to set this.
+pivnet_token: "token-here"                                                                       #! if you need to download images / binaries with "-prep" parameter, this will be required. If not, no need to set this.
+#! Paste ca.crt / Example: CA Cert for *.tap.corp.com / This will be be Root CA for TAP domain.
 ca_cert_data: |
   -----BEGIN CERTIFICATE-----
   MIIFXzCCA0egAwIBAgIJAJYm37SFocjlMA0GCSqGSIb3DQEBDQUAMEY...
   -----END CERTIFICATE-----
+#! Paste ca-no-pass.key / Example: CA Key for *.tap.corp.com / If you're using your own certs, add your un-encrypted Root CA Cert Key.
 ca_cert_key: |
   -----BEGIN PRIVATE KEY-----
   MIIFXzCCA0egAwIBAgIJAJYm37SFocjlMA0GCSqGSIb3DQEBDQUAMEY...
   -----END PRIVATE KEY-----
+#! Paste other ca.crt files / Example: CA Cert for *.tmc.corp.com / If you don't have other CAs remove the values from line 67 to 69 with "".
 other_ca_cert_data: |
   -----BEGIN CERTIFICATE-----
   MIIFJnjVG0egNJbhsdjNJASDHBASLMASSsdjnnsdGSFYCLKNvghjFCG...
