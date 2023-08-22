@@ -230,12 +230,12 @@ tap_install:
       gitops_install:
         ref: origin/main
         subPath: gorkem/namespace-provisioner/namespaces
-        url: https://github.com/gorkemozlu/tap-gitops-ri.git
+        url: #@ "{}".format(data.values.git.push_repo.fqdn)
       additional_sources:
       - git:
           ref: origin/main
           subPath: gorkem/namespace-provisioner/resources
-          url: https://github.com/gorkemozlu/tap-gitops-ri.git
+          url: #@ "{}".format(data.values.git.push_repo.fqdn)
         path: _ytt_lib/resources
       #@ if/end data.values.git.gitea.git_repo:
       import_data_values_secrets:
