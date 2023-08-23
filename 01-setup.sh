@@ -233,7 +233,7 @@ ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tool
 ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/octant.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/octant.yaml
 
 export TAP_VERSION_ORG="1.6.1"
-grep -iRl "$TAP_VERSION_ORG" . | xargs perl -pi -e "s/$TAP_VERSION_ORG/$TAP_VERSION/g"
+sed -i "s/$TAP_VERSION_ORG/$TAP_VERSION/g" ./clusters/full-profile/cluster-config/config/tap-install/.tanzu-managed/version.yaml
 
 cd ./clusters/full-profile
 
