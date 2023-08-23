@@ -16,6 +16,17 @@ if (( $(echo "$SERVER_VERSION < 1.25" | bc -l) )); then
   exit 1
 fi
 
+yq eval '.' ./gorkem/values.yaml
+export yaml_check=$?
+
+if [ $yaml_check -eq 0 ]; then
+    echo "Valid yaml structure for: values.yaml . Continuing."
+else
+    echo ""
+    echo "Invalid yaml structure for: values.yaml . Check values.yaml"
+    exit 1
+fi
+
 # age
 if ! command -v age >/dev/null 2>&1 ; then
   echo "age not installed. Use below to install"

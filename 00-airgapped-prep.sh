@@ -5,6 +5,17 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
+yq eval '.' ./gorkem/values.yaml
+export yaml_check=$?
+
+if [ $yaml_check -eq 0 ]; then
+    echo "Valid yaml structure for: values.yaml . Continuing."
+else
+    echo ""
+    echo "Invalid yaml structure for: values.yaml . Check values.yaml"
+    exit 1
+fi
+
 export INGRESS_DOMAIN=$(yq eval '.ingress_domain' ./gorkem/values.yaml)
 export minioURL=minio.$INGRESS_DOMAIN
 export HARBOR_URL=$(yq eval '.image_registry' ./gorkem/values.yaml)
