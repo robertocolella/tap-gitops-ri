@@ -179,6 +179,9 @@ tanzu secret registry add registry-credentials --username $HARBOR_USERNAME --pas
 tanzu secret registry add lsp-push-credentials --username push-user --password 'VMware1!' --server $HARBOR_URL --namespace default
 tanzu secret registry add lsp-pull-credentials --username pull-user --password 'VMware1!' --server $HARBOR_URL --namespace default
 
+mkdir -p ./clusters/full-profile/cluster-config/dependant-resources/tools
+mkdir -p ./clusters/full-profile/cluster-config/dependant-resources/others
+
 if [ "$AIRGAPPED" = "true" ]; then
   export GIT_REPO=https://git.$(yq eval '.git.gitea.git_repo' gorkem/values.yaml)
   export GIT_USER=$(yq eval '.git.gitea.git_user' gorkem/values.yaml)
@@ -190,7 +193,7 @@ if [ "$AIRGAPPED" = "true" ]; then
   export OTHER_CA_CERT=$(yq eval '.other_ca_cert_data' ./gorkem/values.yaml)
   export ALL_CA_CERT=$(echo -e "$CA_CERT""\n""$OTHER_CA_CERT")
   export INGRESS_DOMAIN=$(yq eval '.ingress_domain' ./gorkem/values.yaml)
-  mkdir -p ./clusters/full-profile/cluster-config/dependant-resources/tools
+
 cat > ./clusters/full-profile/cluster-config/dependant-resources/tools/workload-git-auth.yaml <<-EOF
 apiVersion: v1
 kind: Secret
@@ -219,7 +222,7 @@ EOF
   ytt --ignore-unknown-comments --data-value git_push_repo=$remote_url_ -f gorkem/templates/dependant-resources-app.yaml > clusters/full-profile/cluster-config/config/dependant-resources-app.yaml
   
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/local-issuer.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/local-issuer.yaml
-  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/git.yml > clusters/full-profile/cluster-config/dependant-resources/tools/gitea.yaml
+  ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/git.yml > clusters/full-profile/cluster-config/dependant-resources/others/gitea.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/nexus.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/nexus.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/minio.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/minio.yaml
   ytt --ignore-unknown-comments -f ./gorkem/values.yaml -f ./gorkem/templates/tools/crossplane-ca.yaml > clusters/full-profile/cluster-config/dependant-resources/tools/crossplane-ca.yaml

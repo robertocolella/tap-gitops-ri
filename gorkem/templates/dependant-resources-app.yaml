@@ -42,3 +42,24 @@ spec:
   - kapp:
       rawOptions:
       - --dangerous-allow-empty-list-of-resources=true
+---
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: dependent-other-resources
+  namespace: tanzu-sync
+  annotations:
+    kapp.k14s.io/change-rule.0: "upsert after upserting dependent-resources"
+spec:
+  serviceAccountName: sync-sa
+  syncPeriod: 1m
+  fetch:
+    - git:
+        ref: origin/main
+        url: #@ data.values.git_push_repo
+        subPath: clusters/full-profile/cluster-config/dependant-resources/others
+  template:
+    - ytt: {}
+  deploy:
+    - kapp:
+        rawOptions: ["--dangerous-allow-empty-list-of-resources=true"]

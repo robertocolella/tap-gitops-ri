@@ -255,10 +255,10 @@ elif [ "$1" = "import-packages" ]; then
     
     if [ -n "$KAPP_NS" ]; then
         echo "kapp is running, adding ca.cert"
-        kubectl create secret generic kapp-controller-config \
-           --namespace $KAPP_NS \
-           --from-file caCerts=gorkem/ca.crt
-        kubectl delete pod $KAPP_POD -n $KAPP_NS
+        #kubectl create secret generic kapp-controller-config \
+        #   --namespace $KAPP_NS \
+        #   --from-file caCerts=gorkem/ca.crt
+        #kubectl delete pod $KAPP_POD -n $KAPP_NS
     else
         echo "kapp is not running, therefore installing."
         kubectl create namespace kapp-controller
