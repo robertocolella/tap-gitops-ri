@@ -48,15 +48,6 @@ if ! command -v sops >/dev/null 2>&1 ; then
   exit 1
 fi
 
-# pivnet
-if ! command -v pivnet >/dev/null 2>&1 ; then
-  echo "pivnet not installed. Use below to install"
-  echo "uname -s| grep Darwin && wget https://github.com/pivotal-cf/pivnet-cli/releases/download/v3.0.1/pivnet-darwin-amd64-3.0.1 && chmod +x pivnet-darwin-amd64-3.0.1 && mv pivnet-darwin-amd64-3.0.1 pivnet && cp pivnet /usr/local/bin/pivnet"
-  echo "uname -s| grep Linux && wget https://github.com/pivotal-cf/pivnet-cli/releases/download/v3.0.1/pivnet-linux-amd64-3.0.1 && chmod +x pivnet-linux-amd64-3.0.1 && mv pivnet-linux-amd64-3.0.1 pivnet && cp pivnet /usr/local/bin/pivnet"
-  echo "pivnet login --api-token xyz"
-  echo "Exiting...."
-  exit 1
-fi
 
 # kapp
 if ! command -v kapp >/dev/null 2>&1 ; then
