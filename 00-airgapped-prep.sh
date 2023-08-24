@@ -140,7 +140,7 @@ if [ "$1" = "prep" ]; then
     git clone https://github.com/gorkemozlu/node-express && rm -rf node-express/.git && cp ../../gorkem/sample-workloads/workload-nodejs.yaml node-express/config/workload.yaml
     git clone https://github.com/spring-projects/spring-petclinic && rm -rf spring-petclinic/.git && mkdir -p spring-petclinic/config/ && ../../gorkem/sample-workloads/workload-java-postgres.yaml spring-petclinic/config/workload.yaml
     git clone https://github.com/MoSehsah/bank-demo && rm -rf bank-demo/.git
-    git clone https://github.com/gorkemozlu/learning-center-sample
+    git clone https://github.com/gorkemozlu/learning-center-sample && rm -rf learning-center-sample/.git
     cd ..
 
     export configserver="projects.registry.vmware.com/tanzu_meta_pocs/banking-demo/configserver:latest"
