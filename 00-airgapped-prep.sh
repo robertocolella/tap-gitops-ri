@@ -370,7 +370,7 @@ elif [ "$1" = "post-install" ]; then
     mc anonymous set download minio/grype --insecure
 
     mc mb minio/learning --insecure
-    mc cp gorkem/learning-center/archive.tar minio/learning/ --insecure
+    mc cp gorkem/templates/learning-center/archive.tar minio/learning/ --insecure
     mc anonymous set download minio/learning --insecure
 
     export gitea_user=$(yq eval '.git.gitea.git_user' ./gorkem/values.yaml)
