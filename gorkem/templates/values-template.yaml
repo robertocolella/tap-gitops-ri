@@ -31,7 +31,7 @@ git:
     git_user: tanzu                                                                              #! git user. No need to change.
     git_password: 'VMware1!'                                                                     #! git password. No need to change.
   push_repo:
-    fqdn: https://https://git.tmc.h2o-4-16714.h2o.vmware.com/tanzu/tap-gitops.git                #! the git repo where you're going to push.
+    fqdn: https://git.tmc.h2o-4-16714.h2o.vmware.com/tanzu/tap-gitops.git                #! the git repo where you're going to push.
     auth:                                                                                        #! authentication to the git repo. You should have only one auth method. basic_auth or ssh.
       basic_auth:
         enabled: true                                                                            #! enable if you want to do basic auth.
