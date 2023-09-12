@@ -254,7 +254,9 @@ tap_install:
       - name: grype-airgap-overlay-override
         namespace: tap-install
         create_export: true
+    #@ if data.values.supply_chain == "testing_scanning":
     package_overlays:
       - name: ootb-supply-chain-testing-scanning
         secrets:
           - name: ootb-supply-chain-testing-scanning-add-source-scanner
+    #@ end

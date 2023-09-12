@@ -226,6 +226,12 @@ elif [ "$1" = "import-cli" ]; then
       cp tilt /usr/local/bin/tilt
     fi
 
+    # charts-syncer
+    if ! command -v charts-syncer >/dev/null 2>&1 ; then
+      echo "installing charts-syncer"
+      cp charts-syncer /usr/local/bin/charts-syncer
+    fi
+
     echo "installing tanzu cli"
     tar -xvf tanzu-cli-linux-amd64.tar.gz
     install v1.0.0/tanzu-cli-linux_amd64 /usr/local/bin/tanzu
