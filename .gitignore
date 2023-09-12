@@ -10,5 +10,6 @@ gorkem/ca.crt
 *.tar
 airgapped-files/*
 cert/*
+.DS_Store
 
 !gorkem/templates/learning-center/archive.tar
